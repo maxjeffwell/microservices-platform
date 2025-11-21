@@ -10,5 +10,8 @@
   "dependencies": {},
   "devDependencies": {
     "jest": "^29.7.0"
+  },
+  "exports": {
+    ".": "./index.js"
   }
 }

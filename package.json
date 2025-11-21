@@ -24,6 +24,7 @@
     "start:auth": "npm start --workspace=services/platform/auth-service",
     "start:user": "npm start --workspace=services/platform/user-service",
     "start:notification": "npm start --workspace=services/platform/notification-service",
+    "start:analytics": "npm start --workspace=services/platform/analytics-service",
     "k8s:apply": "./scripts/deploy/k8s-apply.sh",
     "k8s:delete": "./scripts/deploy/k8s-delete.sh"
   },

@@ -4,6 +4,9 @@
   "description": "Shared logging utility for all microservices",
   "main": "index.js",
   "type": "module",
+  "exports": {
+    ".": "./index.js"
+  },
   "scripts": {
     "test": "jest"
   },

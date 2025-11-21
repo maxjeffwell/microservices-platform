@@ -114,3 +114,7 @@ export function responseLoggerMiddleware(logger) {
     next();
   };
 }
+
+// Create and export default logger instance
+const logger = createLogger('platform');
+export default logger;

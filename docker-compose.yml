@@ -39,6 +39,77 @@ services:
       timeout: 5s
       retries: 5
 
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: platform-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+      - zookeeper_logs:/var/lib/zookeeper/log
+    networks:
+      - platform-network
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: platform-kafka
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    networks:
+      - platform-network
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  influxdb:
+    image: influxdb:2.7-alpine
+    container_name: platform-influxdb
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: admin_password
+      DOCKER_INFLUXDB_INIT_ORG: microservices-platform
+      DOCKER_INFLUXDB_INIT_BUCKET: analytics
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUXDB_TOKEN:-my-super-secret-auth-token}
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+      - influxdb_config:/etc/influxdb2
+    networks:
+      - platform-network
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # ==========================================
   # Platform Services
   # ==========================================
@@ -70,72 +141,101 @@ services:
       - /app/node_modules
     command: npm run dev
 
-  user-service:
+  # user-service:
+  #   build:
+  #     context: ./services/platform/user-service
+  #     dockerfile: Dockerfile
+  #   container_name: user-service
+  #   environment:
+  #     NODE_ENV: development
+  #     PORT: 3002
+  #     DATABASE_URL: ${USER_DATABASE_URL}
+  #     AUTH_SERVICE_URL: http://auth-service:3001
+  #   ports:
+  #     - "3002:3002"
+  #   depends_on:
+  #     auth-service:
+  #       condition: service_started
+  #   networks:
+  #     - platform-network
+  #   volumes:
+  #     - ./services/platform/user-service:/app
+  #     - /app/node_modules
+  #   command: npm run dev
+
+  # notification-service:
+  #   build:
+  #     context: ./services/platform/notification-service
+  #     dockerfile: Dockerfile
+  #   container_name: notification-service
+  #   environment:
+  #     NODE_ENV: development
+  #     PORT: 3003
+  #     DATABASE_URL: ${NOTIFICATION_DATABASE_URL}
+  #     SENDGRID_API_KEY: ${SENDGRID_API_KEY}
+  #     EMAIL_FROM: ${EMAIL_FROM:-noreply@el-jefe.me}
+  #     EMAIL_FROM_NAME: ${EMAIL_FROM_NAME:-Portfolio Platform}
+  #   ports:
+  #     - "3003:3003"
+  #   networks:
+  #     - platform-network
+  #   volumes:
+  #     - ./services/platform/notification-service:/app
+  #     - /app/node_modules
+  #   command: npm run dev
+
+  # media-service:
+  #   build:
+  #     context: ./services/platform/media-service
+  #     dockerfile: Dockerfile
+  #   container_name: media-service
+  #   environment:
+  #     NODE_ENV: development
+  #     PORT: 3004
+  #     DATABASE_URL: ${MEDIA_DATABASE_URL}
+  #     # Use Cloudflare R2, AWS S3, or other cloud storage
+  #     STORAGE_PROVIDER: ${STORAGE_PROVIDER:-cloudflare-r2}
+  #     STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY}
+  #     STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY}
+  #     STORAGE_BUCKET: ${STORAGE_BUCKET:-media}
+  #     STORAGE_ENDPOINT: ${STORAGE_ENDPOINT}
+  #   ports:
+  #     - "3004:3004"
+  #   networks:
+  #     - platform-network
+  #   volumes:
+  #     - ./services/platform/media-service:/app
+  #     - /app/node_modules
+  #   command: npm run dev
+
+  analytics-service:
     build:
-      context: ./services/platform/user-service
-      dockerfile: Dockerfile
-    container_name: user-service
+      context: .
+      dockerfile: services/platform/analytics-service/Dockerfile
+    container_name: analytics-service
     environment:
       NODE_ENV: development
-      PORT: 3002
-      DATABASE_URL: ${USER_DATABASE_URL}
-      AUTH_SERVICE_URL: http://auth-service:3001
+      PORT: 3005
+      INFLUXDB_URL: http://influxdb:8086
+      INFLUXDB_TOKEN: ${INFLUXDB_TOKEN:-my-super-secret-auth-token}
+      INFLUXDB_ORG: microservices-platform
+      INFLUXDB_BUCKET: analytics
+      KAFKA_BROKERS: kafka:9092
+      KAFKA_CLIENT_ID: analytics-service
+      KAFKA_GROUP_ID: analytics-service-group
+      KAFKA_EVENTS_TOPIC: analytics.events
+      CORS_ORIGIN: "*"
+      RATE_LIMIT_WINDOW_MS: 900000
+      RATE_LIMIT_MAX_REQUESTS: 100
     ports:
-      - "3002:3002"
+      - "3005:3005"
     depends_on:
-      auth-service:
-        condition: service_started
+      influxdb:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
     networks:
       - platform-network
-    volumes:
-      - ./services/platform/user-service:/app
-      - /app/node_modules
-    command: npm run dev
-
-  notification-service:
-    build:
-      context: ./services/platform/notification-service
-      dockerfile: Dockerfile
-    container_name: notification-service
-    environment:
-      NODE_ENV: development
-      PORT: 3003
-      DATABASE_URL: ${NOTIFICATION_DATABASE_URL}
-      SENDGRID_API_KEY: ${SENDGRID_API_KEY}
-      EMAIL_FROM: ${EMAIL_FROM:-noreply@el-jefe.me}
-      EMAIL_FROM_NAME: ${EMAIL_FROM_NAME:-Portfolio Platform}
-    ports:
-      - "3003:3003"
-    networks:
-      - platform-network
-    volumes:
-      - ./services/platform/notification-service:/app
-      - /app/node_modules
-    command: npm run dev
-
-  media-service:
-    build:
-      context: ./services/platform/media-service
-      dockerfile: Dockerfile
-    container_name: media-service
-    environment:
-      NODE_ENV: development
-      PORT: 3004
-      DATABASE_URL: ${MEDIA_DATABASE_URL}
-      # Use Cloudflare R2, AWS S3, or other cloud storage
-      STORAGE_PROVIDER: ${STORAGE_PROVIDER:-cloudflare-r2}
-      STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY}
-      STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY}
-      STORAGE_BUCKET: ${STORAGE_BUCKET:-media}
-      STORAGE_ENDPOINT: ${STORAGE_ENDPOINT}
-    ports:
-      - "3004:3004"
-    networks:
-      - platform-network
-    volumes:
-      - ./services/platform/media-service:/app
-      - /app/node_modules
-    command: npm run dev
 
   # ==========================================
   # Development Tools (Optional)
@@ -148,7 +248,7 @@ services:
       ME_CONFIG_MONGODB_ADMINUSERNAME: platform
       ME_CONFIG_MONGODB_ADMINPASSWORD: platform_password
       ME_CONFIG_MONGODB_URL: mongodb://platform:platform_password@mongodb:27017/
-      ME_CONFIG_BASICAUTH: false
+      ME_CONFIG_BASICAUTH: "false"
     ports:
       - "8081:8081"
     depends_on:
@@ -179,3 +279,8 @@ networks:
 volumes:
   mongodb_data:
   redis_data:
+  zookeeper_data:
+  zookeeper_logs:
+  kafka_data:
+  influxdb_data:
+  influxdb_config:

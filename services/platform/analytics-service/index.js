@@ -39,6 +39,11 @@ app.use(
 );
 
 /**
+ * Serve static files (dashboard)
+ */
+app.use(express.static('public'));
+
+/**
  * Health check endpoint
  */
 app.get('/health', healthCheck);

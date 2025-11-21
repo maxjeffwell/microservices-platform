@@ -1,0 +1,17 @@
+{
+  "name": "@platform/logger",
+  "version": "1.0.0",
+  "description": "Shared logging utility for all microservices",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "jest"
+  },
+  "dependencies": {
+    "winston": "^3.11.0",
+    "winston-daily-rotate-file": "^4.7.1"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}

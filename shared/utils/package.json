@@ -1,0 +1,14 @@
+{
+  "name": "@platform/utils",
+  "version": "1.0.0",
+  "description": "Shared utility functions for all microservices",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "jest"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}

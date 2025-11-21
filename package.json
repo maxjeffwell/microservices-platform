@@ -1,0 +1,48 @@
+{
+  "name": "microservices-platform",
+  "version": "1.0.0",
+  "description": "Unified microservices platform orchestrating educationELLy, Code Talk, FireBook, and IntervalAI",
+  "private": true,
+  "workspaces": [
+    "services/platform/*",
+    "services/educationelly/*",
+    "services/code-talk/*",
+    "services/firebook/*",
+    "services/intervalai/*",
+    "shared/*"
+  ],
+  "scripts": {
+    "dev": "docker-compose up",
+    "dev:build": "docker-compose up --build",
+    "dev:down": "docker-compose down",
+    "dev:clean": "docker-compose down -v",
+    "test": "npm run test --workspaces",
+    "test:integration": "npm run test:integration --workspaces",
+    "lint": "eslint . --ext .js",
+    "lint:fix": "eslint . --ext .js --fix",
+    "format": "prettier --write \"**/*.{js,json,md}\"",
+    "start:auth": "npm start --workspace=services/platform/auth-service",
+    "start:user": "npm start --workspace=services/platform/user-service",
+    "start:notification": "npm start --workspace=services/platform/notification-service",
+    "k8s:apply": "./scripts/deploy/k8s-apply.sh",
+    "k8s:delete": "./scripts/deploy/k8s-delete.sh"
+  },
+  "keywords": [
+    "microservices",
+    "kubernetes",
+    "istio",
+    "service-mesh",
+    "platform-engineering",
+    "distributed-systems"
+  ],
+  "author": "Jeff Maxwell <maxjeffwell@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.29.1",
+    "prettier": "^3.1.1",
+    "concurrently": "^8.2.2",
+    "nodemon": "^3.0.2"
+  }
+}

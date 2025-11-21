@@ -1,0 +1,14 @@
+{
+  "name": "@platform/errors",
+  "version": "1.0.0",
+  "description": "Shared error handling for all microservices",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "jest"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}

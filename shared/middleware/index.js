@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import jwt from 'jsonwebtoken';
 import rateLimit from 'express-rate-limit';
+import { validationResult } from 'express-validator';
 import { UnauthorizedError } from '@platform/errors';
 
 /**
@@ -107,7 +108,6 @@ export { validationResult } from 'express-validator';
  * Middleware to handle validation errors
  */
 export function handleValidationErrors(req, res, next) {
-  const { validationResult } = await import('express-validator');
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {

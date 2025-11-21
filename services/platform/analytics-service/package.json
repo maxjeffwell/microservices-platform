@@ -1,0 +1,44 @@
+{
+  "name": "analytics-service",
+  "version": "1.0.0",
+  "description": "Analytics and event tracking service for the microservices platform",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon index.js",
+    "start": "node index.js",
+    "test": "NODE_ENV=test jest --detectOpenHandles",
+    "test:watch": "NODE_ENV=test jest --watch",
+    "test:coverage": "NODE_ENV=test jest --coverage"
+  },
+  "keywords": [
+    "analytics",
+    "metrics",
+    "events",
+    "influxdb",
+    "kafka",
+    "microservice"
+  ],
+  "author": "Jeff Maxwell <maxjeffwell@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "@influxdata/influxdb-client": "^1.33.2",
+    "@platform/errors": "file:../../../shared/errors",
+    "@platform/logger": "file:../../../shared/logger",
+    "@platform/middleware": "file:../../../shared/middleware",
+    "@platform/utils": "file:../../../shared/utils",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-validator": "^7.0.1",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "kafkajs": "^2.2.4",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.2",
+    "supertest": "^6.3.3"
+  }
+}

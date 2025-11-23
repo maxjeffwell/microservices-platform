@@ -1,5 +1,8 @@
 # Portfolio Microservices Platform
 
+[![Build and Push Docker Images](https://github.com/maxjeffwell/microservices-platform/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/maxjeffwell/microservices-platform/actions/workflows/docker-publish.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 > A unified microservices platform orchestrating educationELLy, Code Talk, FireBook, and IntervalAI applications with shared infrastructure services.
 
 ## Overview

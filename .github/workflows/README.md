@@ -21,10 +21,12 @@ To enable Docker Hub publishing, you need to configure the following secrets in 
 
 | Secret Name | Description | Example Value |
 |-------------|-------------|---------------|
-| `DOCKER_USERNAME` | Your Docker Hub username | `maxjeffwell` |
-| `DOCKER_PASSWORD` | Your Docker Hub access token or password | `dckr_pat_xxxxx...` |
+| `DOCKERHUB_USERNAME` | Your Docker Hub username | `maxjeffwell` |
+| `DOCKERHUB_TOKEN` | Your Docker Hub access token or password | `dckr_pat_xxxxx...` |
 
 **Important:** For security, use a Docker Hub [Access Token](https://docs.docker.com/docker-hub/access-tokens/) instead of your password.
+
+**Note:** These secrets should already be configured in your repository.
 
 ### How to Create a Docker Hub Access Token
 
@@ -35,7 +37,7 @@ To enable Docker Hub publishing, you need to configure the following secrets in 
 5. Give it a description (e.g., "GitHub Actions")
 6. Select permissions: **Read, Write, Delete**
 7. Click **Generate**
-8. Copy the token and add it as the `DOCKER_PASSWORD` secret in GitHub
+8. Copy the token and add it as the `DOCKERHUB_TOKEN` secret in GitHub
 
 ### Workflow Triggers
 
@@ -112,7 +114,7 @@ Check the status of workflow runs:
 
 ### Troubleshooting
 
-**Authentication Failed**: Ensure your `DOCKER_USERNAME` and `DOCKER_PASSWORD` secrets are correctly set.
+**Authentication Failed**: Ensure your `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` secrets are correctly set.
 
 **Build Failed**: Check the workflow logs for specific error messages. Common issues include:
 - Missing dependencies

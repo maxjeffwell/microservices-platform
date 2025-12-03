@@ -3,7 +3,6 @@ import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import analyticsRoutes from './routes/analytics.js';
-import metabaseRoutes from './routes/metabase.js';
 import { initInfluxDB, closeInfluxDB } from './config/influxdb.js';
 import { initProducer, initConsumer, closeKafka } from './config/kafka.js';
 import { startConsumer } from './services/kafkaConsumer.js';
@@ -39,11 +38,6 @@ app.use(
 );
 
 /**
- * Serve static files (dashboard)
- */
-app.use(express.static('public'));
-
-/**
  * Health check endpoint
  */
 app.get('/health', healthCheck);
@@ -52,7 +46,6 @@ app.get('/health', healthCheck);
  * API Routes
  */
 app.use('/analytics', analyticsRoutes);
-app.use('/metabase', metabaseRoutes);
 
 /**
  * Error handling

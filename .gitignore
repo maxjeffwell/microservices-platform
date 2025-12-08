@@ -5,6 +5,7 @@ yarn-debug.log*
 yarn-error.log*
 package-lock.json
 yarn.lock
+.npm/
 
 # Environment variables
 .env
@@ -32,6 +33,7 @@ pids/
 coverage/
 .nyc_output/
 *.lcov
+coverage-final.json
 
 # Build outputs
 dist/
@@ -39,10 +41,19 @@ build/
 *.tgz
 
 # Docker
-docker-compose.override.yml
+docker-compose*.override.yml
 
 # Kubernetes
 *.kubeconfig
+kubeconfig
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+
+# Helm
+helm/*/charts/
 
 # Database
 *.sqlite
@@ -53,11 +64,21 @@ data/
 tmp/
 temp/
 .cache/
+.artiforge/
+
+# Tool caches
+.eslintcache
+.prettiercache
 
 # OS
 Thumbs.db
 .DS_Store
+.AppleDouble
+.LSOverride
+._*
 
 # Test
 test-results/
 playwright-report/
+.jest-cache/
+junit.xml

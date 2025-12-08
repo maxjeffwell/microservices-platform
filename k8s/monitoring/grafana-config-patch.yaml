@@ -1,0 +1,16 @@
+# Patch for Grafana deployment to serve from /grafana subpath
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus-grafana
+  namespace: monitoring
+spec:
+  template:
+    spec:
+      containers:
+        - name: grafana
+          env:
+            - name: GF_SERVER_ROOT_URL
+              value: "http://86.48.29.183/grafana"
+            - name: GF_SERVER_SERVE_FROM_SUB_PATH
+              value: "true"

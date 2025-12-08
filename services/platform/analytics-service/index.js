@@ -40,7 +40,7 @@ app.use(
 /**
  * Health check endpoint
  */
-app.get('/health', healthCheck);
+app.get('/health', healthCheck('analytics-service', '1.0.0'));
 
 /**
  * API Routes

@@ -1,0 +1,45 @@
+# Grafana IngressRoute for external access
+# Configure Grafana to serve from /grafana subpath
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: grafana-routes
+  namespace: monitoring
+spec:
+  entryPoints:
+    - web
+  routes:
+    - kind: Rule
+      match: PathPrefix(`/grafana`)
+      services:
+        - name: prometheus-grafana
+          port: 80
+---
+# Prometheus IngressRoute for direct access
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: prometheus-routes
+  namespace: monitoring
+spec:
+  entryPoints:
+    - web
+  routes:
+    - kind: Rule
+      match: PathPrefix(`/prometheus`)
+      middlewares:
+        - name: strip-prometheus-prefix
+          namespace: monitoring
+      services:
+        - name: prometheus-kube-prometheus-prometheus
+          port: 9090
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: strip-prometheus-prefix
+  namespace: monitoring
+spec:
+  stripPrefix:
+    prefixes:
+      - /prometheus

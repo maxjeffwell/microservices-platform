@@ -1,0 +1,80 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: vertex-platform-ingress
+  namespace: vertex-platform
+  annotations:
+    # Traefik annotations (k3s default ingress controller)
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /api/auth
+            pathType: Prefix
+            backend:
+              service:
+                name: auth-service
+                port:
+                  number: 3001
+          - path: /api/analytics
+            pathType: Prefix
+            backend:
+              service:
+                name: analytics-service
+                port:
+                  number: 3005
+---
+# Traefik middleware to strip /api/auth and /api/analytics prefixes
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: strip-auth-prefix
+  namespace: vertex-platform
+spec:
+  stripPrefix:
+    prefixes:
+      - /api/auth
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: strip-analytics-prefix
+  namespace: vertex-platform
+spec:
+  stripPrefix:
+    prefixes:
+      - /api/analytics
+---
+# Traefik IngressRoute for more control (alternative to standard Ingress)
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: vertex-platform-routes
+  namespace: vertex-platform
+spec:
+  entryPoints:
+    - web
+  routes:
+    # Root path - API info
+    - match: Path(`/`) || Path(`/health`)
+      kind: Rule
+      services:
+        - name: auth-service
+          port: 3001
+    # Auth service
+    - match: PathPrefix(`/api/auth`)
+      kind: Rule
+      middlewares:
+        - name: strip-auth-prefix
+      services:
+        - name: auth-service
+          port: 3001
+    # Analytics service
+    - match: PathPrefix(`/api/analytics`)
+      kind: Rule
+      middlewares:
+        - name: strip-analytics-prefix
+      services:
+        - name: analytics-service
+          port: 3005

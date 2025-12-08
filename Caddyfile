@@ -1,0 +1,68 @@
+# Caddyfile for Vertex Platform
+# Currently configured for IP-based access (no SSL)
+# When you add a domain, replace :80 with your domain for auto-SSL
+
+:80 {
+    # Enable compression
+    encode gzip zstd
+
+    # Security headers
+    header {
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        -Server
+    }
+
+    # Health check endpoint
+    handle /health {
+        respond "OK" 200
+    }
+
+    # Auth Service API
+    handle /api/auth/* {
+        uri strip_prefix /api/auth
+        reverse_proxy auth-service:3001 {
+            health_uri /health
+            health_interval 30s
+            health_timeout 5s
+        }
+    }
+
+    # Analytics Service API
+    handle /api/analytics/* {
+        uri strip_prefix /api/analytics
+        reverse_proxy analytics-service:3005 {
+            health_uri /health
+            health_interval 30s
+            health_timeout 5s
+        }
+    }
+
+    # Root - API info
+    handle / {
+        respond `{
+    "name": "Vertex Platform API",
+    "version": "1.0.0",
+    "endpoints": {
+        "auth": "/api/auth",
+        "analytics": "/api/analytics"
+    },
+    "health": "/health"
+}` 200 {
+            Content-Type application/json
+        }
+    }
+
+    # 404 for everything else
+    handle {
+        respond "Not Found" 404
+    }
+
+    # Access logging
+    log {
+        output stdout
+        format json
+    }
+}

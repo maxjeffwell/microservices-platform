@@ -66,6 +66,9 @@ temp/
 .cache/
 .artiforge/
 
+# Backups
+backups/
+
 # Tool caches
 .eslintcache
 .prettiercache

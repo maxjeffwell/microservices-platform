@@ -1,0 +1,46 @@
+# Node modules everywhere
+**/node_modules
+**/npm-debug.log
+
+# Environment files
+**/.env
+.env.production
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+
+# Documentation (keep README but not others)
+**/*.md
+!README.md
+
+# Tests and coverage
+**/tests
+**/coverage
+**/jest.config.js
+
+# Docker files (don't copy Dockerfiles into context)
+**/.dockerignore
+
+# Logs
+**/logs
+**/*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Kubernetes manifests (not needed in images)
+k8s/
+
+# Deployment scripts
+*.sh
+!scripts/*.sh
+
+# Nginx configs
+nginx/

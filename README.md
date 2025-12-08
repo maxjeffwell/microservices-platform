@@ -1,366 +1,284 @@
-# Portfolio Microservices Platform
+# Vertex Platform
 
 [![Build and Push Docker Images](https://github.com/maxjeffwell/microservices-platform/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/maxjeffwell/microservices-platform/actions/workflows/docker-publish.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-> A unified microservices platform orchestrating educationELLy, Code Talk, FireBook, and IntervalAI applications with shared infrastructure services.
+> Production-ready microservices platform for building SaaS applications. Use it to accelerate client projects or deploy your own Developer Productivity Suite.
 
-## Overview
+## What Is This?
 
-This project demonstrates enterprise-grade platform engineering by decomposing four existing applications into a cohesive microservices architecture. The platform features:
+Vertex Platform is a **consulting accelerator** and **product foundation** rolled into one:
 
-- **29 Microservices** (6 shared platform + 23 app-specific)
-- **Kubernetes Orchestration** with Istio service mesh
-- **Distributed Tracing** with Jaeger
-- **Comprehensive Monitoring** with Prometheus & Grafana
-- **API Gateway** for unified entry point
-- **Cross-App Features** (SSO, unified analytics, shared services)
+- **For Consulting**: Launch client projects in weeks instead of months using battle-tested auth, analytics, and infrastructure
+- **For Product**: Build a Developer Productivity Suite with integrated tools for learning, collaboration, and organization
 
-## Architecture
+### The Business Model
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     API Gateway                              │
-└──────────────────────┬──────────────────────────────────────┘
-                       │
-┌──────────────────────┼──────────────────────────────────────┐
-│             Istio Service Mesh                               │
-└──────────────────────┬──────────────────────────────────────┘
-                       │
-        ┌──────────────┼──────────────┐
-        │              │              │
-   [Platform]     [App Services]  [Frontends]
+┌─────────────────────────────────────────────────────────────────┐
+│  SHORT-TERM: Consulting Revenue                                  │
+│  • Use platform to build client MVPs fast                       │
+│  • Each project improves the platform                            │
+│  • Bill $150-250/hr with faster delivery                        │
+├─────────────────────────────────────────────────────────────────┤
+│  LONG-TERM: Developer Productivity Suite (SaaS)                 │
+│  • Code Talk: Collaborative coding & technical interviews       │
+│  • FireBook: AI-powered developer bookmarks & research          │
+│  • IntervalAI: Spaced repetition for learning programming       │
+│  • educationELLy: Track your learning journey                   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+## Platform Services (Ready to Use)
+
+These shared services work out of the box and accelerate any SaaS project:
+
+| Service | Status | What It Does |
+|---------|--------|--------------|
+| **Auth Service** | Production | JWT auth, refresh tokens, multi-device support, SSO-ready |
+| **Analytics Service** | Production | Event tracking, metrics, time-series queries via Kafka + InfluxDB |
+| User Service | Planned | Profiles, preferences, cross-app identity |
+| Notification Service | Planned | Email, SMS, push via message queue |
+| Media Service | Planned | File uploads, S3/R2 storage, CDN delivery |
+| Search Service | Planned | Full-text search via Elasticsearch |
+
+## Technology Stack
+
+**Backend**: Node.js, Express, Python/FastAPI (ML), GraphQL, Socket.io
+**Databases**: PostgreSQL (Neon), MongoDB, Redis, InfluxDB, Elasticsearch
+**Infrastructure**: Docker, Kubernetes-ready, Istio service mesh
+**Messaging**: Kafka, RabbitMQ
+**Observability**: Structured logging, health checks, correlation IDs
+
+## Quick Start
+
+### Local Development
+
+```bash
+# Clone and install
+git clone https://github.com/maxjeffwell/microservices-platform.git
+cd microservices-platform
+npm install
+
+# Set up environment
+cp .env.example .env
+# Edit .env with your Neon DB URL and secrets
+
+# Start infrastructure + services
+docker compose up -d
+
+# Services available at:
+# Auth API: http://localhost:3001
+# Analytics API: http://localhost:3005
+```
+
+### Production Deployment (VPS)
+
+```bash
+# 1. Copy project to your VPS
+scp -r . user@your-vps:/opt/vertex-platform
+
+# 2. SSH into VPS
+ssh user@your-vps
+cd /opt/vertex-platform
+
+# 3. Configure production environment
+cp .env.production.example .env.production
+nano .env.production  # Fill in your values
+
+# 4. Deploy
+./deploy.sh setup   # First time only
+./deploy.sh deploy  # Pull images and start services
+
+# Your API is now live at https://your-domain.com
+```
+
+### Deployment Commands
+
+```bash
+./deploy.sh deploy   # Full deployment (pull + restart)
+./deploy.sh status   # Check service health
+./deploy.sh logs     # View all logs
+./deploy.sh logs auth-service  # View specific service
+./deploy.sh backup   # Backup data volumes
+./deploy.sh health   # Run health checks
+```
+
+## API Endpoints
+
+### Auth Service (`/api/auth`)
+
+```bash
+# Register
+POST /api/auth/signup
+{ "email": "user@example.com", "password": "secure123", "name": "User" }
+
+# Login
+POST /api/auth/signin
+{ "email": "user@example.com", "password": "secure123" }
+
+# Refresh token
+POST /api/auth/refresh
+{ "refreshToken": "..." }
+
+# Verify token
+GET /api/auth/verify
+Authorization: Bearer <token>
+
+# Logout
+POST /api/auth/signout
+Authorization: Bearer <token>
+```
+
+### Analytics Service (`/api/analytics`)
+
+```bash
+# Track event
+POST /api/analytics/events
+{
+  "appId": "code-talk",
+  "userId": "user-123",
+  "eventType": "feature",
+  "eventName": "room_created",
+  "properties": { "roomType": "interview" }
+}
+
+# Record metric
+POST /api/analytics/metrics
+{
+  "appId": "code-talk",
+  "metricName": "active_users",
+  "metricType": "gauge",
+  "value": 42
+}
+
+# Query data
+GET /api/analytics/query?appId=code-talk&startTime=-7d&aggregation=count
 ```
 
 ## Project Structure
 
 ```
-microservices-platform/
-├── docs/
-│   ├── ARCHITECTURE.md          # Detailed architecture documentation
-│   ├── IMPLEMENTATION_ROADMAP.md # Phase-by-phase implementation plan
-│   └── SERVICE_CONTRACTS.md      # API contracts for all services
+vertex-platform/
 ├── services/
-│   ├── platform/                 # Shared services
-│   │   ├── auth-service/
-│   │   ├── user-service/
-│   │   ├── notification-service/
-│   │   ├── media-service/
-│   │   ├── analytics-service/
-│   │   └── search-service/
-│   ├── educationelly/            # educationELLy services
-│   │   ├── student-service/
-│   │   ├── assessment-service/
-│   │   ├── progress-service/
-│   │   └── frontend/
-│   ├── code-talk/                # Code Talk services
-│   │   ├── room-service/
-│   │   ├── collaboration-service/
-│   │   ├── messaging-service/
-│   │   ├── code-storage-service/
-│   │   ├── presence-service/
-│   │   └── frontend/
-│   ├── firebook/                 # FireBook services
-│   │   ├── bookmark-service/
-│   │   ├── metadata-service/
-│   │   ├── screenshot-service/
-│   │   ├── tagging-service/
-│   │   ├── collection-service/
-│   │   └── frontend/
-│   └── intervalai/               # IntervalAI services
-│       ├── ml-inference-service/
-│       ├── vocabulary-service/
-│       ├── spaced-repetition-service/
-│       ├── review-scheduler-service/
-│       └── frontend/
-├── infrastructure/
-│   ├── kubernetes/               # K8s manifests
-│   │   ├── base/                 # Base configurations
-│   │   └── overlays/             # Environment-specific overlays (dev/staging/prod)
-│   ├── istio/                    # Service mesh configs
-│   │   ├── gateways/
-│   │   ├── virtual-services/
-│   │   └── destination-rules/
-│   ├── monitoring/               # Observability stack
-│   │   ├── prometheus/
-│   │   ├── grafana/
-│   │   └── jaeger/
-│   └── api-gateway/              # Kong/Ambassador configs
-└── scripts/
-    ├── setup/                    # Setup scripts
-    ├── deploy/                   # Deployment scripts
-    └── test/                     # Testing scripts
+│   └── platform/           # Shared services (use these for any project)
+│       ├── auth-service/   # JWT authentication
+│       └── analytics-service/  # Event tracking + metrics
+├── shared/                 # Reusable libraries
+│   ├── errors/            # Centralized error handling
+│   ├── logger/            # Winston logging with rotation
+│   ├── middleware/        # Auth, rate limiting, health checks
+│   └── utils/             # Common utilities
+├── docker-compose.yml      # Local development
+├── docker-compose.prod.yml # Production deployment
+├── Caddyfile              # Reverse proxy + auto-SSL
+├── deploy.sh              # One-command deployment
+└── .env.production.example # Production config template
 ```
 
-## Applications
+## For Consulting Clients
 
-### 1. educationELLy
-English Language Learner management system with student tracking, assessments, and progress reports.
+When you engage me for a project, you get:
 
-**Services**:
-- Student Service (MongoDB)
-- Assessment Service (MongoDB)
-- Progress Service (PostgreSQL)
+1. **Faster Delivery**: Auth, analytics, and infrastructure are already built
+2. **Production Quality**: Battle-tested code with proper error handling, logging, security
+3. **Scalable Architecture**: Microservices that scale independently
+4. **Modern Stack**: Current best practices, not legacy patterns
+5. **Documentation**: Clear API docs and deployment guides
 
-### 2. Code Talk
-Real-time collaborative code editor with chat and room management.
+**Typical Timeline**:
+- Traditional approach: 4-6 months
+- With Vertex Platform: 4-8 weeks
 
-**Services**:
-- Room Service (PostgreSQL + GraphQL)
-- Collaboration Service (Socket.io + Redis)
-- Messaging Service (PostgreSQL + GraphQL)
-- Code Storage Service (PostgreSQL)
-- Presence Service (Redis)
+## Developer Productivity Suite (Product Roadmap)
 
-### 3. FireBook
-Intelligent bookmark manager with AI tagging and automated metadata extraction.
+The long-term vision is a suite of integrated tools for developers:
 
-**Services**:
-- Bookmark Service (PostgreSQL)
-- Metadata Service (stateless)
-- Screenshot Service (Puppeteer)
-- Tagging Service (Google NL API)
-- Collection Service (PostgreSQL)
+### Code Talk
+Real-time collaborative code editor for pair programming and technical interviews.
+- WebSocket-based real-time sync
+- Room management with permissions
+- Integrated chat
+- Code execution sandbox
 
-### 4. IntervalAI
-Neural-enhanced spaced repetition learning system with ML-optimized review scheduling.
+### FireBook
+AI-powered bookmark manager for developer research and documentation.
+- Auto-extract metadata from URLs
+- AI tagging and categorization
+- Screenshot capture
+- Smart collections
 
-**Services**:
-- ML Inference Service (Python + FastAPI)
-- Vocabulary Service (MongoDB)
-- Spaced Repetition Service (PostgreSQL)
-- Review Scheduler Service (Node.js + Bull)
+### IntervalAI
+Spaced repetition system optimized for learning programming concepts.
+- ML-optimized review scheduling
+- Programming-specific content types
+- Progress tracking
+- API documentation flashcards
 
-## Platform Services (Shared)
+### educationELLy
+Track your learning journey across tutorials, courses, and projects.
+- Progress dashboards
+- Learning path recommendations
+- Integration with other tools
 
-### Auth Service
-JWT-based authentication for all applications with SSO support.
+## Architecture
 
-### User Service
-Unified user profiles and preferences across all apps.
-
-### Notification Service
-Email, SMS, and push notifications via message queue.
-
-### Media Service
-File uploads and storage with CDN delivery (MinIO/S3).
-
-### Analytics Service
-Event tracking and metrics aggregation (InfluxDB + Kafka).
-
-### Search Service
-Full-text search across all applications (Elasticsearch).
-
-## Technology Stack
-
-### Backend
-- **Node.js + Express** - Most microservices
-- **Python + FastAPI** - ML Inference Service
-- **Apollo Server** - GraphQL services (Code Talk)
-- **Socket.io** - Real-time collaboration
-
-### Databases
-- **PostgreSQL** - Relational data (Users, Rooms, Reviews)
-- **MongoDB** - Document data (Students, Vocabulary, Assessments)
-- **Redis** - Caching, sessions, pub/sub (Presence, Tokens)
-- **InfluxDB** - Time-series data (Analytics)
-- **Elasticsearch** - Full-text search
-
-### Infrastructure
-- **Kubernetes** - Container orchestration
-- **Istio** - Service mesh (mTLS, traffic management, observability)
-- **Kong/Ambassador** - API Gateway
-- **Helm** - Package management
-- **Docker** - Containerization
-
-### Observability
-- **Jaeger** - Distributed tracing
-- **Prometheus** - Metrics collection
-- **Grafana** - Visualization dashboards
-- **ELK Stack / Loki** - Centralized logging
-
-### Message Queue
-- **RabbitMQ** - Async communication
-- **Kafka** - Event streaming (Analytics)
-
-## Key Features
-
-### 🔐 Single Sign-On (SSO)
-Log into one app, automatically authenticated across all apps.
-
-### 📊 Unified Analytics
-Centralized dashboard showing usage metrics across all applications.
-
-### 🔍 Platform-Wide Search
-Search for students, bookmarks, code rooms, and vocabulary from one interface.
-
-### 🚀 Independent Scaling
-Each service scales independently based on demand (e.g., ML service scales up during training).
-
-### 🛡️ Enhanced Security
-- mTLS between all services
-- JWT authentication
-- Rate limiting per user/app
-- Network policies and RBAC
-
-### 📈 Comprehensive Observability
-- Distributed tracing shows request flow across services
-- Grafana dashboards for each service
-- Centralized logging with correlation IDs
-
-### 🎯 Advanced Deployment Patterns
-- Canary deployments (10% traffic to new version)
-- Blue-green deployments
-- Circuit breakers for resilience
-- Automated rollback on failure
-
-## Getting Started
-
-### Prerequisites
-- Kubernetes cluster (Minikube, Kind, or cloud)
-- kubectl configured
-- Docker installed
-- Helm 3.x
-- Node.js 18+
-- Python 3.10+ (for ML service)
-
-### Quick Start
-
-```bash
-# Clone repository
-git clone https://github.com/maxjeffwell/microservices-platform.git
-cd microservices-platform
-
-# Install Istio
-./scripts/setup/install-istio.sh
-
-# Deploy platform services
-kubectl apply -k infrastructure/kubernetes/base/platform
-
-# Deploy app services (start with educationELLy)
-kubectl apply -k infrastructure/kubernetes/base/educationelly
-
-# Install monitoring stack
-kubectl apply -k infrastructure/monitoring
-
-# Access services
-kubectl port-forward -n istio-system svc/istio-ingressgateway 8080:80
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    Caddy (Reverse Proxy + SSL)                  │
+└────────────────────────────┬────────────────────────────────────┘
+                             │
+┌────────────────────────────┼────────────────────────────────────┐
+│                     Platform Network                             │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐  │
+│  │ Auth Service │  │  Analytics   │  │  Future Services...   │  │
+│  │   (3001)     │  │   (3005)     │  │                       │  │
+│  └──────┬───────┘  └──────┬───────┘  └───────────────────────┘  │
+│         │                 │                                      │
+│  ┌──────┴───────┐  ┌──────┴───────┐  ┌──────────────────────┐  │
+│  │    Redis     │  │   InfluxDB   │  │   Kafka + Zookeeper  │  │
+│  │   (cache)    │  │ (time-series)│  │   (event streaming)  │  │
+│  └──────────────┘  └──────────────┘  └──────────────────────┘  │
+│                                                                  │
+│  ┌──────────────┐  ┌──────────────┐                             │
+│  │   MongoDB    │  │  PostgreSQL  │  (Neon - external)         │
+│  │  (documents) │  │ (relational) │                             │
+│  └──────────────┘  └──────────────┘                             │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-### Development
+## Security
 
-See [IMPLEMENTATION_ROADMAP.md](docs/IMPLEMENTATION_ROADMAP.md) for detailed implementation phases.
+- JWT with refresh token rotation
+- Password hashing (bcrypt, 10 rounds)
+- Rate limiting per endpoint
+- CORS protection
+- Security headers (Helmet.js)
+- Input validation
+- Non-root Docker containers
+- Internal network isolation (only Caddy exposed)
 
-**Phase 1: Platform Services** (Weeks 1-5)
-- Build Auth, User, and Notification services
-- Set up local development environment
+## What This Demonstrates
 
-**Phase 2: Migrate educationELLy** (Weeks 5-9)
-- Decompose into Student, Assessment, Progress services
-- Integrate with platform services
-
-**Phase 3: Infrastructure** (Weeks 9-14)
-- Deploy to Kubernetes
-- Install Istio service mesh
-- Set up observability stack
-
-**Phase 4: Migrate Remaining Apps** (Weeks 14-20)
-- Code Talk, FireBook, IntervalAI
-
-**Phase 5: Cross-App Features** (Weeks 20-24)
-- SSO implementation
-- Unified dashboard
-- Platform-wide search
-
-## Documentation
-
-- [Architecture](docs/ARCHITECTURE.md) - Detailed architecture documentation
-- [Implementation Roadmap](docs/IMPLEMENTATION_ROADMAP.md) - Phase-by-phase plan
-- [Service Contracts](docs/SERVICE_CONTRACTS.md) - API contracts for all services
-
-## Deployment
-
-### Local Development
-```bash
-# Use Docker Compose for local development
-docker-compose up
-
-# Access apps
-# educationELLy: http://localhost:3001
-# Code Talk: http://localhost:3002
-# FireBook: http://localhost:3003
-# IntervalAI: http://localhost:3004
-```
-
-### Kubernetes (Production)
-```bash
-# Deploy to specific environment
-kubectl apply -k infrastructure/kubernetes/overlays/production
-```
-
-## Monitoring & Observability
-
-### Access Dashboards
-```bash
-# Grafana (metrics)
-kubectl port-forward -n monitoring svc/grafana 3000:3000
-# Visit: http://localhost:3000
-
-# Jaeger (tracing)
-kubectl port-forward -n monitoring svc/jaeger 16686:16686
-# Visit: http://localhost:16686
-
-# Kiali (service mesh)
-kubectl port-forward -n istio-system svc/kiali 20001:20001
-# Visit: http://localhost:20001
-```
-
-## Testing
-
-```bash
-# Run all tests
-npm test
-
-# Test specific service
-cd services/platform/auth-service
-npm test
-
-# Integration tests
-npm run test:integration
-
-# Load testing
-npm run test:load
-```
-
-## Portfolio Value
-
-This project demonstrates:
-
-✅ **Platform Engineering** - Building shared infrastructure for multiple applications
-✅ **Microservices Architecture** - Service decomposition with clear boundaries
-✅ **Domain-Driven Design** - Bounded contexts and service ownership
-✅ **Cloud-Native Development** - Kubernetes, service mesh, containerization
-✅ **DevOps Practices** - CI/CD, IaC, automated deployments
-✅ **Observability** - Distributed tracing, metrics, logging
-✅ **Reliability Engineering** - Circuit breakers, retries, health checks
-✅ **Security** - mTLS, RBAC, network policies, JWT authentication
-
-## Contributing
-
-This is a portfolio project, but contributions and suggestions are welcome!
-
-## License
-
-MIT License - see [LICENSE](LICENSE) for details
+- Platform engineering at scale
+- Microservices architecture with clear boundaries
+- Production deployment practices
+- Security-first design
+- Observability and monitoring
+- Clean code organization
+- Comprehensive documentation
 
 ## Contact
 
-**Jeff Maxwell**
+**Jeff Maxwell** - Full-Stack Engineer & Platform Architect
+
 - GitHub: [@maxjeffwell](https://github.com/maxjeffwell)
 - LinkedIn: [Jeff Maxwell](https://linkedin.com/in/jeffmaxwell)
 - Portfolio: [el-jefe.me](https://el-jefe.me)
 - Email: maxjeffwell@gmail.com
 
+**Interested in working together?** I help startups and businesses build production-ready backends in weeks, not months.
+
 ---
 
-**Built with ❤️ to demonstrate platform engineering and microservices architecture**
+MIT License - See [LICENSE](LICENSE) for details

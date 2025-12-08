@@ -1,61 +1,50 @@
 # Multi-stage build for Auth Service
 
-# Stage 1: Builder
 FROM node:18-alpine AS builder
 
-WORKDIR /app
+WORKDIR /build
 
-# Copy root package files
-COPY package*.json ./
-COPY services/platform/auth-service/package*.json ./services/platform/auth-service/
+# Copy shared libraries to where package.json expects them
+COPY shared /shared
 
-# Copy shared libraries
-COPY shared ./shared
+# Install shared library dependencies
+RUN cd /shared/errors && npm install --omit=dev && \
+    cd /shared/logger && npm install --omit=dev && \
+    cd /shared/utils && npm install --omit=dev && \
+    cd /shared/middleware && npm install --omit=dev
 
-# Install dependencies for shared libraries
-RUN cd shared/errors && npm install --omit=dev && \
-    cd ../logger && npm install --omit=dev && \
-    cd ../middleware && npm install --omit=dev && \
-    cd ../utils && npm install --omit=dev
+# Create symlinks so shared libs can import each other
+RUN mkdir -p /shared/middleware/node_modules/@platform && \
+    ln -s /shared/errors /shared/middleware/node_modules/@platform/errors && \
+    ln -s /shared/logger /shared/middleware/node_modules/@platform/logger && \
+    ln -s /shared/utils /shared/middleware/node_modules/@platform/utils && \
+    mkdir -p /shared/logger/node_modules/@platform && \
+    ln -s /shared/errors /shared/logger/node_modules/@platform/errors
 
-# Copy auth service source code
-COPY services/platform/auth-service ./services/platform/auth-service
+# Copy and install auth service
+COPY services/platform/auth-service ./auth-service
+WORKDIR /build/auth-service
+RUN rm -f package-lock.json && npm install --omit=dev
 
-# Install dependencies for auth service
-WORKDIR /app/services/platform/auth-service
-RUN npm install --omit=dev
-
-# Stage 2: Runtime
+# Runtime stage
 FROM node:18-alpine
 
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001
+RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
 
+# Copy shared libraries to /shared (where file: refs point)
+COPY --from=builder --chown=nodejs:nodejs /shared /shared
+
+# Copy auth service to /app
 WORKDIR /app
-
-# Copy auth service
-COPY --from=builder --chown=nodejs:nodejs /app/services/platform/auth-service ./
-
-# Copy shared libraries into node_modules/@platform
-RUN mkdir -p node_modules/@platform
-COPY --from=builder --chown=nodejs:nodejs /app/shared/errors ./node_modules/@platform/errors
-COPY --from=builder --chown=nodejs:nodejs /app/shared/logger ./node_modules/@platform/logger
-COPY --from=builder --chown=nodejs:nodejs /app/shared/middleware ./node_modules/@platform/middleware
-COPY --from=builder --chown=nodejs:nodejs /app/shared/utils ./node_modules/@platform/utils
+COPY --from=builder --chown=nodejs:nodejs /build/auth-service ./
 
 # Create logs directory
-RUN mkdir -p logs && chown -R nodejs:nodejs /app
+RUN mkdir -p logs && chown -R nodejs:nodejs /app /shared
 
-# Switch to non-root user
 USER nodejs
-
-# Expose port
 EXPOSE 3001
 
-# Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3001/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1); })"
 
-# Start the service
 CMD ["node", "index.js"]

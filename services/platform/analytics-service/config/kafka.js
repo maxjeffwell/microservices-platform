@@ -6,7 +6,7 @@ let producer = null;
 let consumer = null;
 
 /**
- * Initialize Kafka client
+ * Initialize Kafka client with Confluent Cloud support
  */
 export function initKafka() {
   try {
@@ -15,7 +15,8 @@ export function initKafka() {
       : ['localhost:9092'];
     const clientId = process.env.KAFKA_CLIENT_ID || 'analytics-service';
 
-    kafka = new Kafka({
+    // Build Kafka config
+    const kafkaConfig = {
       clientId,
       brokers,
       logLevel: logLevel.ERROR,
@@ -23,11 +24,25 @@ export function initKafka() {
         initialRetryTime: 100,
         retries: 8,
       },
-    });
+    };
+
+    // Add SASL/SSL config for Confluent Cloud
+    if (process.env.KAFKA_SASL_USERNAME && process.env.KAFKA_SASL_PASSWORD) {
+      kafkaConfig.ssl = true;
+      kafkaConfig.sasl = {
+        mechanism: 'plain',
+        username: process.env.KAFKA_SASL_USERNAME,
+        password: process.env.KAFKA_SASL_PASSWORD,
+      };
+      logger.info('Kafka configured with SASL/SSL authentication');
+    }
+
+    kafka = new Kafka(kafkaConfig);
 
     logger.info('Kafka client initialized', {
       clientId,
       brokers,
+      ssl: !!kafkaConfig.ssl,
     });
 
     return kafka;
@@ -47,7 +62,7 @@ export async function initProducer() {
     }
 
     producer = kafka.producer({
-      allowAutoTopicCreation: true,
+      allowAutoTopicCreation: false, // Confluent Cloud requires pre-created topics
       transactionTimeout: 30000,
     });
 
@@ -118,7 +133,7 @@ export async function sendEvent(topic, event) {
       topic,
       messages: [
         {
-          key: event.userId || event.appId,
+          key: event.userId || event.appId || 'default',
           value: JSON.stringify(event),
           timestamp: Date.now().toString(),
         },

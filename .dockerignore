@@ -41,6 +41,3 @@ k8s/
 # Deployment scripts
 *.sh
 !scripts/*.sh
-
-# Nginx configs
-nginx/

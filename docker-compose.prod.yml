@@ -1,6 +1,6 @@
 version: '3.8'
 
-# Production Docker Compose for VPS Deployment (with external nginx)
+# Production Docker Compose for VPS Deployment (with Caddy reverse proxy)
 # Usage: docker compose -f docker-compose.prod.yml up -d
 
 services:
@@ -118,7 +118,7 @@ services:
     container_name: auth-service
     restart: unless-stopped
     ports:
-      - "127.0.0.1:3001:3001"  # Only expose to localhost for nginx
+      - "127.0.0.1:3001:3001"  # Only expose to localhost for Caddy
     environment:
       NODE_ENV: production
       PORT: 3001
@@ -148,7 +148,7 @@ services:
     container_name: analytics-service
     restart: unless-stopped
     ports:
-      - "127.0.0.1:3005:3005"  # Only expose to localhost for nginx
+      - "127.0.0.1:3005:3005"  # Only expose to localhost for Caddy
     environment:
       NODE_ENV: production
       PORT: 3005

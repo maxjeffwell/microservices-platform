@@ -167,7 +167,6 @@ This document outlines the step-by-step implementation plan for building the Por
 - [ ] Update Redux actions/reducers
 - [ ] Integrate with Auth Service (new JWT flow)
 - [ ] Test all functionality
-- [ ] Create Nginx config
 - [ ] Create Dockerfile for frontend
 
 **Deliverables**:

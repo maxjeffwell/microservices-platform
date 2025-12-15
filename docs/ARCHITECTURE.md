@@ -284,7 +284,7 @@ These services are **written once, used by all apps**. They handle cross-cutting
 
 **Technology Stack**:
 - React + Redux
-- Nginx for serving
+- Caddy for serving
 
 **Communication**: API Gateway → Platform Services + App Services
 
@@ -428,7 +428,7 @@ type Subscription {
 **Technology Stack**:
 - React + Apollo Client
 - Socket.io client
-- Nginx for serving
+- Caddy for serving
 
 ---
 
@@ -546,7 +546,7 @@ type Subscription {
 **Technology Stack**:
 - React + Vite
 - Tailwind CSS
-- Nginx for serving
+- Caddy for serving
 
 ---
 
@@ -641,7 +641,7 @@ type Subscription {
 **Technology Stack**:
 - React + Redux
 - TensorFlow.js (client-side ML)
-- Nginx for serving
+- Caddy for serving
 
 ---
 
@@ -897,27 +897,27 @@ correlationId:abc123 AND level:ERROR
 | Student Service | App | Node.js + Express | MongoDB | educationELLy |
 | Assessment Service | App | Node.js + Express | MongoDB | educationELLy |
 | Progress Service | App | Node.js + Express | PostgreSQL | educationELLy |
-| ELL Frontend | App | React + Redux + Nginx | - | educationELLy |
+| ELL Frontend | App | React + Redux + Caddy | - | educationELLy |
 | **Code Talk Services** |
 | Room Service | App | Node.js + Apollo Server | PostgreSQL | Code Talk |
 | Collaboration Service | App | Node.js + Socket.io | Redis | Code Talk |
 | Messaging Service | App | Node.js + Apollo Server | PostgreSQL | Code Talk |
 | Code Storage Service | App | Node.js + Express | PostgreSQL | Code Talk |
 | Presence Service | App | Node.js + Express | Redis | Code Talk |
-| Code Talk Frontend | App | React + Apollo + Nginx | - | Code Talk |
+| Code Talk Frontend | App | React + Apollo + Caddy | - | Code Talk |
 | **FireBook Services** |
 | Bookmark Service | App | Node.js + Express | PostgreSQL/Firestore | FireBook |
 | Metadata Service | App | Node.js + Cheerio | - | FireBook |
 | Screenshot Service | App | Node.js + Puppeteer | - | FireBook |
 | Tagging Service | App | Node.js + Google NL API | - | FireBook |
 | Collection Service | App | Node.js + Express | PostgreSQL | FireBook |
-| FireBook Frontend | App | React + Vite + Nginx | - | FireBook |
+| FireBook Frontend | App | React + Vite + Caddy | - | FireBook |
 | **IntervalAI Services** |
 | ML Inference Service | App | Python + FastAPI | PostgreSQL | IntervalAI |
 | Vocabulary Service | App | Node.js + Express | MongoDB | IntervalAI |
 | Spaced Repetition Service | App | Node.js + Express | PostgreSQL | IntervalAI |
 | Review Scheduler Service | App | Node.js + Bull | Redis | IntervalAI |
-| IntervalAI Frontend | App | React + Redux + Nginx | - | IntervalAI |
+| IntervalAI Frontend | App | React + Redux + Caddy | - | IntervalAI |
 
 **Total Services**: 29 microservices (6 platform + 23 app-specific)
 

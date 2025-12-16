@@ -67,6 +67,16 @@ export class ValidationError extends ApplicationError {
 }
 
 /**
+ * 429 Too Many Requests
+ */
+export class TooManyRequestsError extends ApplicationError {
+  constructor(message = 'Too many requests', retryAfter = null) {
+    super(message, 429);
+    this.retryAfter = retryAfter;
+  }
+}
+
+/**
  * 500 Internal Server Error
  */
 export class InternalServerError extends ApplicationError {

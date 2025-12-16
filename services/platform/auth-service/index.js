@@ -44,16 +44,25 @@ app.use('/auth', authRoutes);
 app.get('/', (req, res) => {
   res.json({
     service: 'auth-service',
-    version: '1.0.0',
+    version: '1.1.0',
     status: 'running',
     endpoints: {
       health: '/health',
+      // Authentication
       signup: 'POST /auth/signup',
       signin: 'POST /auth/signin',
       refresh: 'POST /auth/refresh',
       verify: 'POST /auth/verify',
       signout: 'POST /auth/signout',
       signoutAll: 'POST /auth/signout-all',
+      // Password Reset
+      forgotPassword: 'POST /auth/forgot-password',
+      resetPassword: 'POST /auth/reset-password',
+      validateResetToken: 'POST /auth/validate-reset-token',
+      // Email Verification
+      verifyEmail: 'POST /auth/verify-email',
+      resendVerification: 'POST /auth/resend-verification',
+      verificationStatus: 'POST /auth/verification-status',
     },
   });
 });
@@ -94,11 +103,14 @@ async function startServer() {
       logger.info(`Health check: http://localhost:${PORT}/health`);
     });
 
-    // Cleanup expired refresh tokens every hour
+    // Cleanup expired tokens every hour
     setInterval(async () => {
       try {
         const { default: RefreshToken } = await import('./models/RefreshToken.js');
+        const { default: PasswordReset } = await import('./models/PasswordReset.js');
+
         await RefreshToken.deleteExpired();
+        await PasswordReset.deleteExpired();
       } catch (error) {
         logger.error('Error cleaning up expired tokens', { error: error.message });
       }

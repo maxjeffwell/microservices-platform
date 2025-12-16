@@ -99,9 +99,34 @@ export async function initializeSchema() {
       id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
       email VARCHAR(255) UNIQUE NOT NULL,
       password_hash VARCHAR(255) NOT NULL,
+      email_verified BOOLEAN DEFAULT FALSE,
+      email_verification_token VARCHAR(500),
+      email_verification_expires TIMESTAMP WITH TIME ZONE,
+      failed_login_attempts INTEGER DEFAULT 0,
+      locked_until TIMESTAMP WITH TIME ZONE,
       created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     );
+
+    -- Add columns if they don't exist (for existing databases)
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='auth_users' AND column_name='email_verified') THEN
+        ALTER TABLE auth_users ADD COLUMN email_verified BOOLEAN DEFAULT FALSE;
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='auth_users' AND column_name='email_verification_token') THEN
+        ALTER TABLE auth_users ADD COLUMN email_verification_token VARCHAR(500);
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='auth_users' AND column_name='email_verification_expires') THEN
+        ALTER TABLE auth_users ADD COLUMN email_verification_expires TIMESTAMP WITH TIME ZONE;
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='auth_users' AND column_name='failed_login_attempts') THEN
+        ALTER TABLE auth_users ADD COLUMN failed_login_attempts INTEGER DEFAULT 0;
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='auth_users' AND column_name='locked_until') THEN
+        ALTER TABLE auth_users ADD COLUMN locked_until TIMESTAMP WITH TIME ZONE;
+      END IF;
+    END $$;
 
     -- Create auth_refresh_tokens table
     CREATE TABLE IF NOT EXISTS auth_refresh_tokens (

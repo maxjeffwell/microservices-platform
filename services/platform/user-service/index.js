@@ -4,7 +4,7 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { createLogger } from '@platform/logger';
 import { errorHandler } from '@platform/errors';
-import { correlationIdMiddleware, healthCheck, requestLogger } from '@platform/middleware';
+import { correlationIdMiddleware, healthCheck } from '@platform/middleware';
 import { testConnection, initializeSchema } from './config/database.js';
 import setupRoutes from './routes/index.js';
 
@@ -31,10 +31,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // Request middleware
 app.use(correlationIdMiddleware);
-app.use(requestLogger);
 
 // Health check endpoint
-app.use('/health', healthCheck);
+app.get('/health', healthCheck('user-service', '1.0.0'));
 
 // API routes
 setupRoutes(app);

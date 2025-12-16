@@ -31,11 +31,11 @@ app.use(correlationIdMiddleware);
 app.use(loggerMiddleware(logger));
 app.use(responseLoggerMiddleware(logger));
 
-// Rate limiting
-app.use(rateLimiter());
-
 // Health check endpoint
 app.get('/health', healthCheck('auth-service', '1.0.0'));
+
+// Rate limiting
+app.use(rateLimiter());
 
 // Routes
 app.use('/auth', authRoutes);

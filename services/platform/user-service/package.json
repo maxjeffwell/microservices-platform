@@ -1,0 +1,38 @@
+{
+  "name": "@platform/user-service",
+  "version": "1.0.0",
+  "description": "User profile and preferences microservice",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "NODE_ENV=test jest --detectOpenHandles",
+    "test:watch": "NODE_ENV=test jest --watch",
+    "test:coverage": "NODE_ENV=test jest --coverage"
+  },
+  "keywords": [
+    "user",
+    "profile",
+    "preferences",
+    "microservice"
+  ],
+  "author": "maxjeffwell",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "pg": "^8.11.3",
+    "dotenv": "^16.3.1",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "express-validator": "^7.0.1",
+    "express-rate-limit": "^7.1.5",
+    "@platform/logger": "^1.0.0",
+    "@platform/errors": "^1.0.0",
+    "@platform/middleware": "^1.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2",
+    "jest": "^29.7.0"
+  }
+}

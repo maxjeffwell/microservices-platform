@@ -33,11 +33,11 @@ spec:
                   key: MONGO_PASSWORD
           resources:
             requests:
-              memory: "256Mi"
-              cpu: "100m"
-            limits:
               memory: "512Mi"
-              cpu: "500m"
+              cpu: "250m"
+            limits:
+              memory: "2Gi"
+              cpu: "1"
           volumeMounts:
             - name: mongodb-data
               mountPath: /data/db

@@ -72,36 +72,18 @@ docker compose up -d
 # Analytics API: http://localhost:3005
 ```
 
-### Production Deployment (VPS)
+### Production Deployment (Kubernetes)
+
+The platform is deployed to Kubernetes via the [portfolio-orchestration-platform](https://github.com/maxjeffwell/portfolio-orchestration-platform) repo:
+
+- **Ingress**: Traefik with automatic TLS via cert-manager
+- **Domain**: `vertex-platform.el-jefe.me`
+- **Routes**: `/auth` → auth-service, `/analytics` → analytics-service
 
 ```bash
-# 1. Copy project to your VPS
-scp -r . user@your-vps:/opt/vertex-platform
-
-# 2. SSH into VPS
-ssh user@your-vps
-cd /opt/vertex-platform
-
-# 3. Configure production environment
-cp .env.production.example .env.production
-nano .env.production  # Fill in your values
-
-# 4. Deploy
-./deploy.sh setup   # First time only
-./deploy.sh deploy  # Pull images and start services
-
-# Your API is now live at https://your-domain.com
-```
-
-### Deployment Commands
-
-```bash
-./deploy.sh deploy   # Full deployment (pull + restart)
-./deploy.sh status   # Check service health
-./deploy.sh logs     # View all logs
-./deploy.sh logs auth-service  # View specific service
-./deploy.sh backup   # Backup data volumes
-./deploy.sh health   # Run health checks
+# K8s manifests are in k8s/ directory
+./k8s-deploy.sh deploy   # Deploy to cluster
+./k8s-deploy.sh status   # Check deployment status
 ```
 
 ## API Endpoints
@@ -170,10 +152,8 @@ vertex-platform/
 │   ├── middleware/        # Auth, rate limiting, health checks
 │   └── utils/             # Common utilities
 ├── docker-compose.yml      # Local development
-├── docker-compose.prod.yml # Production deployment
-├── Caddyfile              # Reverse proxy + auto-SSL
-├── deploy.sh              # One-command deployment
-└── .env.production.example # Production config template
+├── k8s/                   # Kubernetes manifests
+└── k8s-deploy.sh          # K8s deployment script
 ```
 
 ## For Consulting Clients
@@ -225,7 +205,7 @@ Track your learning journey across tutorials, courses, and projects.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    Caddy (Reverse Proxy + SSL)                  │
+│              Traefik Ingress Controller (TLS via cert-manager)  │
 └────────────────────────────┬────────────────────────────────────┘
                              │
 ┌────────────────────────────┼────────────────────────────────────┐
@@ -256,7 +236,7 @@ Track your learning journey across tutorials, courses, and projects.
 - Security headers (Helmet.js)
 - Input validation
 - Non-root Docker containers
-- Internal network isolation (only Caddy exposed)
+- Internal network isolation (Traefik ingress only)
 
 ## What This Demonstrates
 

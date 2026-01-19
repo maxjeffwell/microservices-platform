@@ -1,6 +1,6 @@
 # Multi-stage build for User Service
 
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /build
 
@@ -29,7 +29,7 @@ RUN --mount=type=cache,target=/root/.npm \
     rm -f package-lock.json && npm install --omit=dev
 
 # Runtime stage
-FROM node:18-alpine
+FROM node:20-alpine
 
 RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
 

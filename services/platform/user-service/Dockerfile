@@ -7,8 +7,9 @@ WORKDIR /build
 # Copy shared libraries to where package.json expects them
 COPY shared /shared
 
-# Install shared library dependencies
-RUN cd /shared/errors && npm install --omit=dev && \
+# Install shared library dependencies (BuildKit cache speeds up repeated builds)
+RUN --mount=type=cache,target=/root/.npm \
+    cd /shared/errors && npm install --omit=dev && \
     cd /shared/logger && npm install --omit=dev && \
     cd /shared/utils && npm install --omit=dev && \
     cd /shared/middleware && npm install --omit=dev
@@ -24,7 +25,8 @@ RUN mkdir -p /shared/middleware/node_modules/@platform && \
 # Copy and install user service
 COPY services/platform/user-service ./user-service
 WORKDIR /build/user-service
-RUN rm -f package-lock.json && npm install --omit=dev
+RUN --mount=type=cache,target=/root/.npm \
+    rm -f package-lock.json && npm install --omit=dev
 
 # Runtime stage
 FROM node:18-alpine

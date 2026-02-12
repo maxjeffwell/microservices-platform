@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: analytics-service
-          image: docker.io/maxjeffwell/vertex-platform-analytics-service:20260119-230113-43ea907
+          image: docker.io/maxjeffwell/vertex-platform-analytics-service:20260212-040503-89cbf8d
           imagePullPolicy: Always
           ports:
             - containerPort: 3005

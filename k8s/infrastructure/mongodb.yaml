@@ -45,14 +45,16 @@ spec:
             exec:
               command: ["mongosh", "--eval", "db.adminCommand('ping')"]
             initialDelaySeconds: 15
-            periodSeconds: 10
-            timeoutSeconds: 5
+            periodSeconds: 20
+            timeoutSeconds: 30
+            failureThreshold: 10
           livenessProbe:
             exec:
               command: ["mongosh", "--eval", "db.adminCommand('ping')"]
             initialDelaySeconds: 45
-            periodSeconds: 20
-            timeoutSeconds: 5
+            periodSeconds: 30
+            timeoutSeconds: 30
+            failureThreshold: 10
       volumes:
         - name: mongodb-data
           persistentVolumeClaim:

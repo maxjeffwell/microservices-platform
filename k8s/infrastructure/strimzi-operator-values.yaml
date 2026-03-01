@@ -1,0 +1,11 @@
+# Strimzi Kafka Operator Helm values
+# Chart: strimzi/strimzi-kafka-operator 0.50.1
+# Release: kafka (namespace: microservices)
+#
+# Install/upgrade:
+#   helm upgrade --install kafka strimzi/strimzi-kafka-operator \
+#     -n microservices -f strimzi-operator-values.yaml
+
+# Pin operator to data node to reduce load on control-plane VPS
+nodeSelector:
+  role: data

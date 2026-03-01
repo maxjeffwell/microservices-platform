@@ -9,3 +9,14 @@
 # Pin operator to data node to reduce load on control-plane VPS
 nodeSelector:
   role: data
+
+# Increase CPU limit — default 1000m causes CFS throttling during
+# reconciliation bursts, which delays lease renewal and triggers
+# leader election loss (CrashLoopBackOff).
+resources:
+  limits:
+    cpu: 2000m
+    memory: 384Mi
+  requests:
+    cpu: 200m
+    memory: 384Mi

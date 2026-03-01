@@ -15,6 +15,8 @@ spec:
       labels:
         app: user-service
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: vmi3115606
       containers:
         - name: user-service
           image: docker.io/maxjeffwell/vertex-platform-user-service:latest

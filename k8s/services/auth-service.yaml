@@ -15,6 +15,8 @@ spec:
       labels:
         app: auth-service
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: vmi3115606
       containers:
         - name: auth-service
           image: docker.io/maxjeffwell/vertex-platform-auth-service:20260212-040503-89cbf8d

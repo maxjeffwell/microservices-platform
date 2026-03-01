@@ -19,7 +19,7 @@ spec:
         kubernetes.io/hostname: vmi3115606
       containers:
         - name: analytics-service
-          image: docker.io/maxjeffwell/vertex-platform-analytics-service:20260212-040503-89cbf8d
+          image: docker.io/maxjeffwell/vertex-platform-analytics-service:20260301-044845-b9a5341
           imagePullPolicy: Always
           ports:
             - containerPort: 3005

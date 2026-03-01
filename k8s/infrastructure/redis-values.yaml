@@ -1,0 +1,36 @@
+# Bitnami Redis Helm values (microservices namespace)
+# Chart: bitnami/redis 24.1.2
+# Release: redis (namespace: microservices)
+#
+# Upgrade:
+#   sudo KUBECONFIG=/etc/rancher/k3s/k3s.yaml helm upgrade redis bitnami/redis \
+#     -n microservices -f redis-values.yaml
+
+auth:
+  existingSecret: redis
+  existingSecretPasswordKey: redis-password
+
+image:
+  tag: 8.4.0-debian-12-r6
+  digest: "sha256:c9fe12d04ead99c483a030768aa80b3bb8a96d254bb6d02d0fb30374c53077e1"
+
+master:
+  persistence:
+    enabled: false
+
+replica:
+  replicaCount: 1
+  # Increase probe timeouts - CPU pressure on vmi2951245 causes
+  # ping_liveness_local_and_master.sh to exceed default timeouts
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 15
+    timeoutSeconds: 10
+    failureThreshold: 5
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 20
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 5

@@ -11,6 +11,17 @@ spec:
   roles:
     - controller
     - broker
+  template:
+    pod:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: role
+                    operator: In
+                    values:
+                      - data
   storage:
     type: persistent-claim
     size: 5Gi

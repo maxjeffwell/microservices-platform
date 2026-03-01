@@ -60,6 +60,17 @@ spec:
       auto.create.topics.enable: true
       log.retention.hours: 168
   entityOperator:
+    template:
+      pod:
+        affinity:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: role
+                      operator: In
+                      values:
+                        - data
     topicOperator: {}
     userOperator: {}
 ---

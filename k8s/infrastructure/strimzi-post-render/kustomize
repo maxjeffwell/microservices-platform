@@ -1,0 +1,5 @@
+#!/bin/sh
+# Helm post-renderer: pipes rendered manifests through kustomize.
+# Usage: helm upgrade ... --post-renderer ./strimzi-post-render/kustomize
+cat > "$(dirname "$0")/all.yaml"
+exec kubectl kustomize "$(dirname "$0")"

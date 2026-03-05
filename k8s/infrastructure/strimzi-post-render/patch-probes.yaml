@@ -1,0 +1,19 @@
+# Patch liveness/readiness probe timeouts for the Strimzi operator.
+# The chart (v0.50.x) only templates initialDelaySeconds and periodSeconds;
+# timeoutSeconds and failureThreshold are not exposed as values.
+# Default 1s timeout is too aggressive on a loaded cluster — API responses
+# can take several seconds, causing spurious liveness failures and restarts.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: strimzi-cluster-operator
+spec:
+  template:
+    spec:
+      containers:
+        - name: strimzi-cluster-operator
+          livenessProbe:
+            timeoutSeconds: 5
+            failureThreshold: 5
+          readinessProbe:
+            timeoutSeconds: 5

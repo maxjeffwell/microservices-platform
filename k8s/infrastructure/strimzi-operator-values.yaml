@@ -2,9 +2,10 @@
 # Chart: strimzi/strimzi-kafka-operator 0.50.1
 # Release: kafka (namespace: microservices)
 #
-# Install/upgrade:
+# Install/upgrade (post-renderer patches probe timeouts not exposed by chart):
 #   helm upgrade --install kafka strimzi/strimzi-kafka-operator \
-#     -n microservices -f strimzi-operator-values.yaml
+#     -n microservices -f strimzi-operator-values.yaml \
+#     --post-renderer ./strimzi-post-render/kustomize
 
 # Pin operator to data node to reduce load on control-plane VPS
 nodeSelector:

@@ -1,8 +1,10 @@
-# Patch liveness/readiness probe timeouts for the Strimzi operator.
+# Patch liveness/readiness probe timeouts and leader election for the Strimzi operator.
 # The chart (v0.50.x) only templates initialDelaySeconds and periodSeconds;
-# timeoutSeconds and failureThreshold are not exposed as values.
-# Default 1s timeout is too aggressive on a loaded cluster — API responses
+# timeoutSeconds, failureThreshold, and leader election durations are not exposed.
+# Default 1s probe timeout is too aggressive on a loaded cluster — API responses
 # can take several seconds, causing spurious liveness failures and restarts.
+# Default 15s lease / 10s renew deadline is too tight for cross-node WireGuard
+# latency + JVM GC pauses — causes leader election loss and CrashLoopBackOff.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -12,6 +14,13 @@ spec:
     spec:
       containers:
         - name: strimzi-cluster-operator
+          env:
+            - name: STRIMZI_LEADER_ELECTION_LEASE_DURATION_MS
+              value: "120000"
+            - name: STRIMZI_LEADER_ELECTION_RENEW_DEADLINE_MS
+              value: "90000"
+            - name: STRIMZI_LEADER_ELECTION_RETRY_PERIOD_MS
+              value: "5000"
           livenessProbe:
             timeoutSeconds: 5
             failureThreshold: 5

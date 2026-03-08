@@ -71,8 +71,40 @@ spec:
                       operator: In
                       values:
                         - data
-    topicOperator: {}
-    userOperator: {}
+    topicOperator:
+      startupProbe:
+        initialDelaySeconds: 15
+        periodSeconds: 10
+        failureThreshold: 60
+        timeoutSeconds: 5
+      livenessProbe:
+        initialDelaySeconds: 0
+        periodSeconds: 10
+        failureThreshold: 3
+        timeoutSeconds: 5
+      resources:
+        requests:
+          cpu: 50m
+          memory: 256Mi
+        limits:
+          memory: 256Mi
+    userOperator:
+      livenessProbe:
+        initialDelaySeconds: 120
+        periodSeconds: 10
+        failureThreshold: 3
+        timeoutSeconds: 5
+      readinessProbe:
+        initialDelaySeconds: 60
+        periodSeconds: 10
+        failureThreshold: 3
+        timeoutSeconds: 5
+      resources:
+        requests:
+          cpu: 50m
+          memory: 256Mi
+        limits:
+          memory: 256Mi
 ---
 # Create the analytics events topic
 apiVersion: kafka.strimzi.io/v1beta2

@@ -58,7 +58,7 @@ spec:
       volumes:
         - name: mongodb-data
           persistentVolumeClaim:
-            claimName: mongodb-pvc
+            claimName: mongodb-vertex-synology
 ---
 apiVersion: v1
 kind: Service
@@ -75,11 +75,12 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: mongodb-pvc
+  name: mongodb-vertex-synology
   namespace: vertex-platform
 spec:
   accessModes:
     - ReadWriteOnce
+  storageClassName: synology-iscsi
   resources:
     requests:
       storage: 5Gi

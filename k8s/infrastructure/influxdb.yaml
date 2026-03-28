@@ -21,8 +21,6 @@ spec:
           ports:
             - containerPort: 8086
           env:
-            - name: DOCKER_INFLUXDB_INIT_MODE
-              value: "setup"
             - name: DOCKER_INFLUXDB_INIT_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -60,6 +58,8 @@ spec:
               mountPath: /var/lib/influxdb2
             - name: influxdb-config
               mountPath: /etc/influxdb2
+            - name: tmp
+              mountPath: /tmp
           readinessProbe:
             httpGet:
               path: /ping
@@ -75,10 +75,12 @@ spec:
       volumes:
         - name: influxdb-data
           persistentVolumeClaim:
-            claimName: influxdb-data-pvc
+            claimName: influxdb-data-synology
         - name: influxdb-config
           persistentVolumeClaim:
-            claimName: influxdb-config-pvc
+            claimName: influxdb-config-synology
+        - name: tmp
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -95,11 +97,12 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: influxdb-data-pvc
+  name: influxdb-data-synology
   namespace: vertex-platform
 spec:
   accessModes:
     - ReadWriteOnce
+  storageClassName: synology-iscsi
   resources:
     requests:
       storage: 5Gi
@@ -107,11 +110,12 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: influxdb-config-pvc
+  name: influxdb-config-synology
   namespace: vertex-platform
 spec:
   accessModes:
     - ReadWriteOnce
+  storageClassName: synology-iscsi
   resources:
     requests:
-      storage: 100Mi
+      storage: 1Gi

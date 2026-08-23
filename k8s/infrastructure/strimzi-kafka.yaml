@@ -85,9 +85,9 @@ spec:
       resources:
         requests:
           cpu: 50m
-          memory: 256Mi
+          memory: 384Mi
         limits:
-          memory: 256Mi
+          memory: 384Mi
     userOperator:
       livenessProbe:
         initialDelaySeconds: 120
@@ -102,9 +102,9 @@ spec:
       resources:
         requests:
           cpu: 50m
-          memory: 256Mi
+          memory: 384Mi
         limits:
-          memory: 256Mi
+          memory: 384Mi
 ---
 # Create the analytics events topic
 apiVersion: kafka.strimzi.io/v1beta2

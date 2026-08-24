@@ -9,7 +9,7 @@ metadata:
   name: vertex-platform
   namespace: vertex-platform
   annotations:
-    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.middlewares: kube-system-crowdsec-bouncer@kubernetescrd
     cert-manager.io/cluster-issuer: letsencrypt-prod-dns
 spec:

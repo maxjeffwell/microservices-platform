@@ -16,7 +16,7 @@ spec:
         app: analytics-service
     spec:
       nodeSelector:
-        kubernetes.io/hostname: vmi3115606
+        kubernetes.io/hostname: m720q
       containers:
         - name: analytics-service
           image: docker.io/maxjeffwell/vertex-platform-analytics-service:20260824-015506-f931c70

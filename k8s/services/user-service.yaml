@@ -16,7 +16,7 @@ spec:
         app: user-service
     spec:
       nodeSelector:
-        kubernetes.io/hostname: vmi3115606
+        kubernetes.io/hostname: m720q
       containers:
         - name: user-service
           image: docker.io/maxjeffwell/vertex-platform-user-service:latest

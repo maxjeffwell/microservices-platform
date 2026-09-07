@@ -19,7 +19,7 @@ spec:
         kubernetes.io/hostname: m720q
       containers:
         - name: analytics-service
-          image: docker.io/maxjeffwell/vertex-platform-analytics-service:20260824-015506-f931c70
+          image: docker.io/maxjeffwell/vertex-platform-analytics-service:20260907-030318-2b9cd8b
           imagePullPolicy: Always
           ports:
             - containerPort: 3005

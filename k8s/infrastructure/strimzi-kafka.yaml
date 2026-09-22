@@ -26,10 +26,16 @@ spec:
     type: persistent-claim
     size: 5Gi
     deleteClaim: false
+  # 2026-09-22: memory request 512Mi (git) / 768Mi (live, patched out of band)
+  # -> 896Mi. Strimzi sets -Xms=-Xmx to 50% of the LIMIT (495Mi here), fully
+  # committed at start, plus ~260Mi non-heap for 120 threads, metaspace and
+  # code cache, so the broker's working set is ~756Mi by construction (flat,
+  # 30-day peak 805Mi, heap only ~53% used). The limit stays 1Gi on purpose:
+  # raising it raises the heap too. cpu 100m records the live value (15m used).
   resources:
     requests:
-      memory: 512Mi
-      cpu: 250m
+      memory: 896Mi
+      cpu: 100m
     limits:
       memory: 1Gi
       cpu: 1000m

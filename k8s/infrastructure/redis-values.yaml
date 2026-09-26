@@ -19,6 +19,12 @@ master:
     enabled: false
 
 replica:
+  # 2026-09-26: the replica STS is scaled to 0 (dormant since Dec 2025; data
+  # kept by choice). Its PVCs redis-data-redis-replicas-0/1/2 were recreated BY
+  # HAND on mayastor-2-sata-thin (same names, contents restored + sha256
+  # verified) and are adopted on scale-up. Do NOT add replica.persistence.
+  # storageClass here: StatefulSet volumeClaimTemplates are immutable, so a
+  # changed value makes `helm upgrade` fail.
   replicaCount: 1
   # Increase probe timeouts - CPU pressure on vmi2951245 causes
   # ping_liveness_local_and_master.sh to exceed default timeouts

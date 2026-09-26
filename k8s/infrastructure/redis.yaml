@@ -75,10 +75,12 @@ metadata:
   name: redis-pvc
   namespace: vertex-platform
 spec:
-  # 2026-09-26: recreated on mayastor-2 (2 replicas). It was a single replica
-  # on the m920s BX300 (mayastor-sata). Redis is scaled to 0 and the volume is
-  # kept by choice; contents (4 AOF/RDB files) restored from a tar backup.
-  storageClassName: mayastor-2
+  # 2026-09-26: recreated on mayastor-2-sata-thin (2 replicas on the SATA pools:
+  # m920s BX300 + elitedesk USB BX500; thin). Briefly on mayastor-2 (NVMe) earlier
+  # the same day; moved off because NVMe is scarce. Redis is scaled to 0 and the
+  # volume is kept by choice; contents (4 AOF/RDB files) restored from tar with
+  # sha256 verification.
+  storageClassName: mayastor-2-sata-thin
   accessModes:
     - ReadWriteOnce
   resources:

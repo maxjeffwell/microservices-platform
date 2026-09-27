@@ -22,9 +22,12 @@ spec:
                     operator: In
                     values:
                       - data
+  # 2026-09-27: local-path (default SC) -> openebs-lvmpv on m720q (data copied,
+  # PVC rebound). lvm-localpv gives capacity enforcement + CSI snapshots.
   storage:
     type: persistent-claim
     size: 5Gi
+    class: openebs-lvmpv
     deleteClaim: false
   # 2026-09-22: memory request 512Mi (git) / 768Mi (live, patched out of band)
   # -> 896Mi. Strimzi sets -Xms=-Xmx to 50% of the LIMIT (495Mi here), fully

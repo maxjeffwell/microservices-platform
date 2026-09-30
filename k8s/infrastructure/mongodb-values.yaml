@@ -8,21 +8,11 @@
 #     --set auth.rootPassword="$(kubectl get secret -n microservices mongodb -o jsonpath='{.data.mongodb-root-password}' | base64 -d)" \
 #     --set auth.password="$(kubectl get secret -n microservices mongodb -o jsonpath='{.data.mongodb-passwords}' | base64 -d)"
 #   (without them the chart would generate NEW random passwords and break every client)
-# affinity (2026-09-27): soft preference (weight 100); the chart's nodeAffinityPreset
-# soft is only weight 1. Was m920s (to move the 500m CPU request off m720q);
-# 2026-09-30 -> neonmarmoset (new Mayastor csi-node) to take the 512Mi memory
-# request off m920s (89% requested). Data is a mayastor-2 RF2 volume, so the
-# pod can attach it from any csi-node.
+# affinity (2026-09-30): NO node preference — scheduler-placed by free requests.
+# (History: soft m920s 9/27 -> soft neonmarmoset 9/30 -> none.) Data is a
+# mayastor-2 RF2 volume attachable from any csi-node. podAntiAffinity is the
+# chart default, kept.
 affinity:
-  nodeAffinity:
-    preferredDuringSchedulingIgnoredDuringExecution:
-    - preference:
-        matchExpressions:
-        - key: kubernetes.io/hostname
-          operator: In
-          values:
-          - neonmarmoset
-      weight: 100
   podAntiAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
     - podAffinityTerm:

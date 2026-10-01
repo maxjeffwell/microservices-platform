@@ -1,7 +1,7 @@
 import express from 'express';
 import { body } from 'express-validator';
 import { asyncHandler } from '@platform/errors';
-import { handleValidationErrors } from '@platform/middleware';
+import { handleValidationErrors, rateLimiter } from '@platform/middleware';
 import User from '../models/User.js';
 import RefreshToken from '../models/RefreshToken.js';
 import PasswordReset from '../models/PasswordReset.js';
@@ -20,12 +20,21 @@ const logger = createLogger('auth-service:routes');
 
 const LOCKOUT_DURATION_MINUTES = parseInt(process.env.LOCKOUT_DURATION_MINUTES) || 15;
 
+// Signup spam protection: SIGNUP_RATE_LIMIT_MAX signups per client IP per hour
+// (default 5). Every attempt counts, successful or not. Relies on
+// `trust proxy` = 1 in index.js for the real client IP.
+const signupLimiter = rateLimiter(
+  60 * 60 * 1000,
+  parseInt(process.env.SIGNUP_RATE_LIMIT_MAX) || 5
+);
+
 /**
  * POST /auth/signup
  * Register a new user
  */
 router.post(
   '/signup',
+  signupLimiter,
   [
     body('email')
       .isEmail()

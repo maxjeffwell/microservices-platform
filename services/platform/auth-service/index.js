@@ -26,6 +26,13 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Clients reach this service through exactly one proxy, the edge Traefik (not
+// Cloudflare). Traefik keeps the client address and overwrites any
+// X-Forwarded-For a non-Cloudflare client sends, so one hop gives the real IP.
+// Without this, req.ip was Traefik's pod IP and every client shared one
+// rate-limit bucket.
+app.set('trust proxy', 1);
+
 // Logging and correlation ID
 app.use(correlationIdMiddleware);
 app.use(loggerMiddleware(logger));

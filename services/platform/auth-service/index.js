@@ -26,12 +26,12 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Clients reach this service through exactly one proxy, the edge Traefik (not
-// Cloudflare). Traefik keeps the client address and overwrites any
-// X-Forwarded-For a non-Cloudflare client sends, so one hop gives the real IP.
-// Without this, req.ip was Traefik's pod IP and every client shared one
-// rate-limit bucket.
-app.set('trust proxy', 1);
+// vertex-platform.el-jefe.me is Cloudflare-proxied (since 2026-10-01):
+// client -> Cloudflare -> edge svclb/Traefik -> this service. Cloudflare
+// appends the real client to X-Forwarded-For and Traefik appends the svclb
+// pod IP, so the 2nd hop from the right is the client. (The edge svclb hides
+// client IPs from Traefik, so without Cloudflare there is no real client IP.)
+app.set('trust proxy', 2);
 
 // Logging and correlation ID
 app.use(correlationIdMiddleware);

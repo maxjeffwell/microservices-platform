@@ -22,7 +22,7 @@ const LOCKOUT_DURATION_MINUTES = parseInt(process.env.LOCKOUT_DURATION_MINUTES) 
 
 // Signup spam protection: SIGNUP_RATE_LIMIT_MAX signups per client IP per hour
 // (default 5). Every attempt counts, successful or not. Relies on
-// `trust proxy` = 1 in index.js for the real client IP.
+// `trust proxy` = 2 in index.js for the real client IP.
 const signupLimiter = rateLimiter(
   60 * 60 * 1000,
   parseInt(process.env.SIGNUP_RATE_LIMIT_MAX) || 5

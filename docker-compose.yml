@@ -141,28 +141,6 @@ services:
       - /app/node_modules
     command: npm run dev
 
-  # user-service:
-  #   build:
-  #     context: ./services/platform/user-service
-  #     dockerfile: Dockerfile
-  #   container_name: user-service
-  #   environment:
-  #     NODE_ENV: development
-  #     PORT: 3002
-  #     DATABASE_URL: ${USER_DATABASE_URL}
-  #     AUTH_SERVICE_URL: http://auth-service:3001
-  #   ports:
-  #     - "3002:3002"
-  #   depends_on:
-  #     auth-service:
-  #       condition: service_started
-  #   networks:
-  #     - platform-network
-  #   volumes:
-  #     - ./services/platform/user-service:/app
-  #     - /app/node_modules
-  #   command: npm run dev
-
   # notification-service:
   #   build:
   #     context: ./services/platform/notification-service

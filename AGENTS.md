@@ -329,7 +329,6 @@ microservices-platform/
 │   ├── platform/                # Shared platform services
 │   │   ├── auth-service/        # JWT authentication & authorization
 │   │   ├── analytics-service/   # Event tracking with InfluxDB & Kafka
-│   │   ├── user-service/        # User profiles and preferences (planned)
 │   │   ├── notification-service/ # Email/SMS/push notifications (planned)
 │   │   ├── media-service/       # File uploads & CDN (planned)
 │   │   └── search-service/      # Full-text search (planned)

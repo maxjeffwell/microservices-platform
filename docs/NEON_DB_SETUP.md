@@ -104,7 +104,6 @@ Update the connection strings in `.env`:
 # Format: postgresql://[user]:[password]@[endpoint]/[database]?sslmode=require
 
 AUTH_DATABASE_URL=postgresql://neondb_owner:xxx@ep-xxx.neon.tech/auth?sslmode=require
-USER_DATABASE_URL=postgresql://neondb_owner:xxx@ep-xxx.neon.tech/users?sslmode=require
 NOTIFICATION_DATABASE_URL=postgresql://neondb_owner:xxx@ep-xxx.neon.tech/notifications?sslmode=require
 MEDIA_DATABASE_URL=postgresql://neondb_owner:xxx@ep-xxx.neon.tech/media?sslmode=require
 

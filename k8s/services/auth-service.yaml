@@ -19,7 +19,7 @@ spec:
         kubernetes.io/hostname: m720q
       containers:
         - name: auth-service
-          image: docker.io/maxjeffwell/vertex-platform-auth-service:20261001-220520-50c1b9e
+          image: docker.io/maxjeffwell/vertex-platform-auth-service:20261001-222326-b068833
           imagePullPolicy: Always
           ports:
             - containerPort: 3001

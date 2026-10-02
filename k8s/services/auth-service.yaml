@@ -41,21 +41,6 @@ spec:
                 secretKeyRef:
                   name: platform-secrets
                   key: AUTH_DATABASE_URL
-            - name: REDIS_HOST
-              valueFrom:
-                configMapKeyRef:
-                  name: platform-config
-                  key: REDIS_HOST
-            - name: REDIS_PORT
-              valueFrom:
-                configMapKeyRef:
-                  name: platform-config
-                  key: REDIS_PORT
-            - name: REDIS_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: platform-secrets
-                  key: REDIS_PASSWORD
             - name: JWT_SECRET
               valueFrom:
                 secretKeyRef:

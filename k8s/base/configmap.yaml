@@ -12,16 +12,14 @@ data:
   JWT_REFRESH_EXPIRES_IN: "30d"
 
   # Redis
-  REDIS_HOST: "redis"
-  REDIS_PORT: "6379"
 
   # InfluxDB
-  INFLUXDB_URL: "http://influxdb:8086"
-  INFLUXDB_ORG: "microservices-platform"
-  INFLUXDB_BUCKET: "analytics"
+  INFLUXDB_URL: "http://influxdb.monitoring.svc.cluster.local:8086"
+  INFLUXDB_ORG: "homenet"
+  INFLUXDB_BUCKET: "vertex-analytics"
 
   # Kafka
-  KAFKA_BROKERS: "kafka:9092"
+  KAFKA_BROKERS: "vertex-kafka-kafka-bootstrap.microservices.svc.cluster.local:9092"
   KAFKA_CLIENT_ID: "analytics-service"
   KAFKA_GROUP_ID: "analytics-service-group"
   KAFKA_EVENTS_TOPIC: "analytics.events"

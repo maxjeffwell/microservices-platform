@@ -46,6 +46,12 @@ spec:
                 secretKeyRef:
                   name: platform-secrets
                   key: INFLUXDB_TOKEN
+            # Verifies auth-service access tokens on /analytics.
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: platform-secrets
+                  key: JWT_SECRET
             - name: INFLUXDB_ORG
               valueFrom:
                 configMapKeyRef:

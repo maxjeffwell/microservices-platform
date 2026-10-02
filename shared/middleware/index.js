@@ -18,9 +18,10 @@ export function correlationIdMiddleware(req, res, next) {
 /**
  * Middleware to verify JWT token
  * @param {string} jwtSecret - JWT secret key
+ * @param {object} [verifyOptions] - jsonwebtoken verify options (e.g. issuer, audience)
  * @returns {Function}
  */
-export function authenticateToken(jwtSecret = process.env.JWT_SECRET) {
+export function authenticateToken(jwtSecret = process.env.JWT_SECRET, verifyOptions = {}) {
   return (req, res, next) => {
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
@@ -29,7 +30,7 @@ export function authenticateToken(jwtSecret = process.env.JWT_SECRET) {
       return next(new UnauthorizedError('Access token required'));
     }
 
-    jwt.verify(token, jwtSecret, (err, user) => {
+    jwt.verify(token, jwtSecret, verifyOptions, (err, user) => {
       if (err) {
         return next(new UnauthorizedError('Invalid or expired token'));
       }

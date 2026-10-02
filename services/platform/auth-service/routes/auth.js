@@ -23,6 +23,13 @@ const LOCKOUT_DURATION_MINUTES = parseInt(process.env.LOCKOUT_DURATION_MINUTES) 
 // Signup spam protection: SIGNUP_RATE_LIMIT_MAX signups per client IP per hour
 // (default 5). Every attempt counts, successful or not. Relies on
 // `trust proxy` = 2 in index.js for the real client IP.
+// Public email signups are disabled (2026-10-02). Set SIGNUP_ENABLED=true on
+// the Deployment to open them temporarily, e.g. to create an account.
+function signupsDisabled(req, res, next) {
+  if (process.env.SIGNUP_ENABLED === 'true') return next();
+  return res.status(403).json({ error: 'Signups are disabled' });
+}
+
 const signupLimiter = rateLimiter(
   60 * 60 * 1000,
   parseInt(process.env.SIGNUP_RATE_LIMIT_MAX) || 5
@@ -34,6 +41,7 @@ const signupLimiter = rateLimiter(
  */
 router.post(
   '/signup',
+  signupsDisabled,
   signupLimiter,
   [
     body('email')

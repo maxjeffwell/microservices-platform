@@ -3,6 +3,7 @@ import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import analyticsRoutes from './routes/analytics.js';
+import { requireAuth, scopeToUser } from './middleware/auth.js';
 import { initInfluxDB, closeInfluxDB } from './config/influxdb.js';
 import { initProducer, initConsumer, closeKafka } from './config/kafka.js';
 import { startConsumer } from './services/kafkaConsumer.js';
@@ -45,12 +46,12 @@ app.get('/health', healthCheck('analytics-service', '1.0.0'));
 /**
  * API Routes
  */
-app.use('/analytics', analyticsRoutes);
+app.use('/analytics', requireAuth, scopeToUser, analyticsRoutes);
 
 /**
  * Error handling
  */
-app.use(errorHandler);
+app.use(errorHandler(logger));
 
 /**
  * Initialize connections

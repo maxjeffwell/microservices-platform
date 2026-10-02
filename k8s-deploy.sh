@@ -62,7 +62,6 @@ deploy_infrastructure() {
 
     kubectl -n vertex-platform wait --for=condition=ready pod -l app=zookeeper --timeout=120s || true
     kubectl -n vertex-platform wait --for=condition=ready pod -l app=kafka --timeout=180s || true
-    kubectl -n vertex-platform wait --for=condition=ready pod -l app=influxdb --timeout=120s || true
 
     log_success "Infrastructure services deployed"
 }
@@ -131,7 +130,7 @@ show_logs() {
     local service=${1:-}
     if [ -z "$service" ]; then
         log_error "Usage: $0 logs <service>"
-        log_info "Services: auth-service, analytics-service, redis, mongodb, influxdb, kafka, zookeeper"
+        log_info "Services: auth-service, analytics-service, kafka"
         exit 1
     fi
 

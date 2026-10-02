@@ -51,18 +51,15 @@ deploy_base() {
     log_success "Base resources deployed"
 }
 
-# Deploy infrastructure (redis, mongodb, influxdb, kafka)
+# Deploy infrastructure (kafka). Analytics uses monitoring/influxdb; the
+# Vertex redis/mongodb/influxdb were retired 2026-10-02.
 deploy_infrastructure() {
     log_info "Deploying infrastructure services..."
 
-    kubectl apply -f "$K8S_DIR/infrastructure/redis.yaml"
-    kubectl apply -f "$K8S_DIR/infrastructure/mongodb.yaml"
-    kubectl apply -f "$K8S_DIR/infrastructure/influxdb.yaml"
     kubectl apply -f "$K8S_DIR/infrastructure/kafka.yaml"
 
     log_info "Waiting for infrastructure to be ready..."
 
-    kubectl -n vertex-platform wait --for=condition=ready pod -l app=redis --timeout=120s || true
     kubectl -n vertex-platform wait --for=condition=ready pod -l app=zookeeper --timeout=120s || true
     kubectl -n vertex-platform wait --for=condition=ready pod -l app=kafka --timeout=180s || true
     kubectl -n vertex-platform wait --for=condition=ready pod -l app=influxdb --timeout=120s || true

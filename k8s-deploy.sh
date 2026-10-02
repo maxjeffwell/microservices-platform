@@ -51,20 +51,10 @@ deploy_base() {
     log_success "Base resources deployed"
 }
 
-# Deploy infrastructure (kafka). Analytics uses monitoring/influxdb; the
-# Vertex redis/mongodb/influxdb were retired 2026-10-02.
-deploy_infrastructure() {
-    log_info "Deploying infrastructure services..."
-
-    kubectl apply -f "$K8S_DIR/infrastructure/kafka.yaml"
-
-    log_info "Waiting for infrastructure to be ready..."
-
-    kubectl -n vertex-platform wait --for=condition=ready pod -l app=zookeeper --timeout=120s || true
-    kubectl -n vertex-platform wait --for=condition=ready pod -l app=kafka --timeout=180s || true
-
-    log_success "Infrastructure services deployed"
-}
+# Data stores are not deployed by this script: Kafka is the Strimzi cluster in
+# the microservices namespace (k8s/infrastructure/strimzi-*.yaml), analytics
+# uses monitoring/influxdb. The Vertex redis/mongodb/influxdb/kafka/zookeeper
+# manifests were retired 2026-10-02.
 
 # Deploy platform services (auth, analytics)
 deploy_services() {
@@ -94,7 +84,6 @@ deploy_ingress() {
 deploy_all() {
     check_prereqs
     deploy_base
-    deploy_infrastructure
     deploy_services
     deploy_ingress
 
@@ -130,7 +119,7 @@ show_logs() {
     local service=${1:-}
     if [ -z "$service" ]; then
         log_error "Usage: $0 logs <service>"
-        log_info "Services: auth-service, analytics-service, kafka"
+        log_info "Services: auth-service, analytics-service"
         exit 1
     fi
 

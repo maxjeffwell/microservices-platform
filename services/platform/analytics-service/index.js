@@ -12,6 +12,12 @@ import { correlationIdMiddleware, rateLimiter, healthCheck } from '@platform/mid
 import logger from '@platform/logger';
 
 const app = express();
+
+// vertex-platform.el-jefe.me is Cloudflare-proxied: client -> Cloudflare ->
+// edge svclb/Traefik -> this service. Cloudflare appends the real client to
+// X-Forwarded-For and Traefik appends the svclb pod IP, so the client is 2 hops
+// back. Without this, every client shared one rate-limit bucket.
+app.set('trust proxy', 2);
 const PORT = process.env.PORT || 3005;
 
 /**
@@ -31,11 +37,13 @@ app.use(correlationIdMiddleware);
 /**
  * Rate limiting
  */
+// rateLimiter(windowMs, max) takes two numbers. It used to get one options
+// object, which left the window NaN ("ratelimit-policy: 100;w=NaN").
 app.use(
-  rateLimiter({
-    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10) || 15 * 60 * 1000,
-    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS, 10) || 100,
-  })
+  rateLimiter(
+    parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10) || 15 * 60 * 1000,
+    parseInt(process.env.RATE_LIMIT_MAX_REQUESTS, 10) || 100
+  )
 );
 
 /**

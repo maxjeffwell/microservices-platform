@@ -35,6 +35,12 @@ app.use(express.urlencoded({ extended: true }));
 app.use(correlationIdMiddleware);
 
 /**
+ * Health check endpoint (before the rate limiter: Kubernetes probes
+ * every 10-20 s would otherwise exhaust the limit and get 429s)
+ */
+app.get('/health', healthCheck('analytics-service', '1.0.0'));
+
+/**
  * Rate limiting
  */
 // rateLimiter(windowMs, max) takes two numbers. It used to get one options
@@ -46,10 +52,6 @@ app.use(
   )
 );
 
-/**
- * Health check endpoint
- */
-app.get('/health', healthCheck('analytics-service', '1.0.0'));
 
 /**
  * API Routes

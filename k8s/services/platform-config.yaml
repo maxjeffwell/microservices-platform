@@ -3,6 +3,9 @@ kind: ConfigMap
 metadata:
   name: platform-config
   namespace: vertex-platform
+  annotations:
+    # Applied before the Deployments that read it.
+    argocd.argoproj.io/sync-wave: "-1"
 data:
   NODE_ENV: "production"
   LOG_LEVEL: "info"

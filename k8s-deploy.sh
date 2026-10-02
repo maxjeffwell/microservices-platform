@@ -45,7 +45,7 @@ deploy_base() {
     log_info "Deploying base resources..."
 
     kubectl apply -f "$K8S_DIR/base/namespace.yaml"
-    kubectl apply -f "$K8S_DIR/base/configmap.yaml"
+    kubectl apply -f "$K8S_DIR/services/platform-config.yaml"
     kubectl apply -f "$K8S_DIR/base/secrets.yaml"
 
     log_success "Base resources deployed"

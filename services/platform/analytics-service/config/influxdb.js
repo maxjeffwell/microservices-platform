@@ -56,6 +56,30 @@ export function getWriteApi() {
 /**
  * Get query API instance
  */
+/**
+ * Write API for the k8s-allocation bucket. Unlike the events path (flush per
+ * message), this one batches: the producer sends ~140 points every 30 s, so
+ * the client buffers and flushes every 5 s or 2000 points.
+ */
+let allocationWriteApi = null;
+export function getAllocationWriteApi() {
+  if (!influxDB) {
+    throw new Error('InfluxDB not initialized. Call initInfluxDB() first.');
+  }
+  if (!allocationWriteApi) {
+    const org = process.env.INFLUXDB_ORG;
+    const bucket = process.env.ALLOCATION_INFLUXDB_BUCKET || 'k8s-allocation';
+    allocationWriteApi = influxDB.getWriteApi(org, bucket, 'ms', {
+      batchSize: 2000,
+      flushInterval: 5000,
+      maxRetries: 5,
+      maxBufferLines: 50000,
+    });
+    logger.info('InfluxDB allocation write API ready', { org, bucket });
+  }
+  return allocationWriteApi;
+}
+
 export function getQueryApi() {
   if (!queryApi) {
     throw new Error('InfluxDB query API not initialized. Call initInfluxDB() first.');
@@ -72,6 +96,11 @@ export async function closeInfluxDB() {
       await writeApi.close();
       logger.info('InfluxDB write API closed');
     }
+    if (allocationWriteApi) {
+      await allocationWriteApi.close();
+      allocationWriteApi = null;
+      logger.info('InfluxDB allocation write API closed');
+    }
   } catch (error) {
     logger.error('Error closing InfluxDB connection', { error: error.message });
     throw error;
@@ -81,6 +110,7 @@ export async function closeInfluxDB() {
 export default {
   initInfluxDB,
   getWriteApi,
+  getAllocationWriteApi,
   getQueryApi,
   closeInfluxDB,
 };

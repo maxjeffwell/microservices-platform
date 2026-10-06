@@ -46,6 +46,9 @@ jobs:
           - name: analytics-service
             context: .
             dockerfile: ./services/platform/analytics-service/Dockerfile
+          - name: k8s-allocation-producer
+            context: .
+            dockerfile: ./services/platform/k8s-allocation-producer/Dockerfile
 
     steps:
       - name: Checkout repository
@@ -128,6 +131,9 @@ jobs:
             # Update Analytics Service deployment
             sed -i "s|image: docker.io/maxjeffwell/vertex-platform-analytics-service:.*|image: docker.io/maxjeffwell/vertex-platform-analytics-service:${IMAGE_TAG}|" k8s/services/analytics-service.yaml
 
+            # Update k8s-allocation-producer deployment
+            sed -i "s|image: docker.io/maxjeffwell/vertex-platform-k8s-allocation-producer:.*|image: docker.io/maxjeffwell/vertex-platform-k8s-allocation-producer:${IMAGE_TAG}|" k8s/services/k8s-allocation-producer.yaml
+
             git diff k8s/services/
 
             if git diff --quiet k8s/services/; then
@@ -135,7 +141,7 @@ jobs:
               exit 0
             fi
 
-            git add k8s/services/auth-service.yaml k8s/services/analytics-service.yaml
+            git add k8s/services/auth-service.yaml k8s/services/analytics-service.yaml k8s/services/k8s-allocation-producer.yaml
             git commit -m "Update Vertex Platform image tags to ${IMAGE_TAG}"
 
             if git push origin main; then

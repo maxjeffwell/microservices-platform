@@ -26,6 +26,11 @@ data:
   KAFKA_CLIENT_ID: "analytics-service"
   KAFKA_GROUP_ID: "analytics-service-group"
   KAFKA_EVENTS_TOPIC: "analytics.events"
+  # k8s-allocation-producer -> Kafka -> analytics-service -> InfluxDB k8s-allocation
+  KAFKA_ALLOCATION_TOPICS: "k8s.allocation,k8s.allocation.events"
+  KAFKA_ALLOCATION_TOPIC: "k8s.allocation"
+  KAFKA_ALLOCATION_EVENTS_TOPIC: "k8s.allocation.events"
+  ALLOCATION_INFLUXDB_BUCKET: "k8s-allocation"
 
   # CORS
   CORS_ORIGIN: "*"

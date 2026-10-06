@@ -1,6 +1,7 @@
 import { getConsumer } from '../config/kafka.js';
-import { getWriteApi } from '../config/influxdb.js';
+import { getWriteApi, getAllocationWriteApi } from '../config/influxdb.js';
 import Event from '../models/Event.js';
+import { allocationToPoint } from '../models/Allocation.js';
 import logger from '@platform/logger';
 
 let isRunning = false;
@@ -16,20 +17,41 @@ export async function startConsumer() {
     }
 
     const consumer = getConsumer();
-    const topic = process.env.KAFKA_EVENTS_TOPIC || 'analytics.events';
+    const eventsTopic = process.env.KAFKA_EVENTS_TOPIC || 'analytics.events';
+    // k8s-allocation-producer topics (snapshots + scheduling/scaling events).
+    // Empty KAFKA_ALLOCATION_TOPICS disables the allocation path.
+    const allocationTopics = (process.env.KAFKA_ALLOCATION_TOPICS || '')
+      .split(',')
+      .map((t) => t.trim())
+      .filter(Boolean);
+    const allocationEventsTopic =
+      process.env.KAFKA_ALLOCATION_EVENTS_TOPIC || 'k8s.allocation.events';
+    const topics = [eventsTopic, ...allocationTopics];
 
     await consumer.subscribe({
-      topic,
+      topics,
       fromBeginning: false,
     });
 
-    logger.info('Kafka consumer subscribed to topic', { topic });
+    logger.info('Kafka consumer subscribed to topics', { topics });
 
     isRunning = true;
 
     await consumer.run({
       eachMessage: async ({ topic, partition, message }) => {
         try {
+          if (topic !== eventsTopic) {
+            // Allocation snapshot/event: buffered write, flushed by the client
+            // every 5 s (see getAllocationWriteApi) instead of per message.
+            const point = allocationToPoint(
+              topic,
+              JSON.parse(message.value.toString()),
+              allocationEventsTopic
+            );
+            if (point) getAllocationWriteApi().writePoint(point);
+            return;
+          }
+
           const eventData = JSON.parse(message.value.toString());
 
           // Create and validate event

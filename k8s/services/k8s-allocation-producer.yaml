@@ -1,0 +1,125 @@
+# k8s-allocation-producer: publishes node/workload/HPA allocation snapshots
+# (every 30 s) and scheduling/eviction/scaling events to Kafka; analytics-service
+# writes them to the InfluxDB bucket k8s-allocation. Read-only cluster access.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: k8s-allocation-producer
+  namespace: vertex-platform
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: k8s-allocation-producer
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "nodes", "events"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["replicasets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["autoscaling"]
+    resources: ["horizontalpodautoscalers"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["metrics.k8s.io"]
+    resources: ["pods", "nodes"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: k8s-allocation-producer
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: k8s-allocation-producer
+subjects:
+  - kind: ServiceAccount
+    name: k8s-allocation-producer
+    namespace: vertex-platform
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-allocation-producer
+  namespace: vertex-platform
+  labels:
+    app: k8s-allocation-producer
+spec:
+  replicas: 1
+  # One producer only: two would double every snapshot in InfluxDB.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: k8s-allocation-producer
+  template:
+    metadata:
+      labels:
+        app: k8s-allocation-producer
+    spec:
+      serviceAccountName: k8s-allocation-producer
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+      containers:
+        - name: k8s-allocation-producer
+          image: docker.io/maxjeffwell/vertex-platform-k8s-allocation-producer:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3006
+              name: http
+          env:
+            - name: PORT
+              value: "3006"
+            - name: SNAPSHOT_INTERVAL_MS
+              value: "30000"
+            - name: KAFKA_CLIENT_ID
+              value: "k8s-allocation-producer"
+            - name: GPU_RESOURCE_NAME
+              value: "gpu.intel.com/i915"
+            - name: NODE_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: platform-config
+                  key: NODE_ENV
+            - name: LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: platform-config
+                  key: LOG_LEVEL
+            - name: KAFKA_BROKERS
+              valueFrom:
+                configMapKeyRef:
+                  name: platform-config
+                  key: KAFKA_BROKERS
+            - name: KAFKA_ALLOCATION_TOPIC
+              valueFrom:
+                configMapKeyRef:
+                  name: platform-config
+                  key: KAFKA_ALLOCATION_TOPIC
+            - name: KAFKA_ALLOCATION_EVENTS_TOPIC
+              valueFrom:
+                configMapKeyRef:
+                  name: platform-config
+                  key: KAFKA_ALLOCATION_EVENTS_TOPIC
+          resources:
+            requests:
+              memory: "96Mi"
+              cpu: "20m"
+            limits:
+              memory: "256Mi"
+              cpu: "300m"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3006
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3006
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            failureThreshold: 3

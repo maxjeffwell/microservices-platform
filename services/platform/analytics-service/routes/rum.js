@@ -13,8 +13,9 @@ const router = express.Router();
 // helmet sets Cross-Origin-Resource-Policy: same-origin on every response.
 // The apps load rum.js and post beacons cross-origin, so both routes need
 // cross-origin, or browsers block the response (ERR_BLOCKED_BY_RESPONSE.
-// NotSameOrigin) and log a console error on every page.
-router.use((req, res, next) => {
+// NotSameOrigin) and log a console error on every page. Scoped to the RUM
+// paths: this router shares the /analytics mount with the JWT API.
+router.use(['/rum', '/rum.js'], (req, res, next) => {
   res.set('Cross-Origin-Resource-Policy', 'cross-origin');
   next();
 });

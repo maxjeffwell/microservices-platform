@@ -10,6 +10,15 @@ import { buildRumMessage, publishRum, rumScript } from '../services/rumService.j
  */
 const router = express.Router();
 
+// helmet sets Cross-Origin-Resource-Policy: same-origin on every response.
+// The apps load rum.js and post beacons cross-origin, so both routes need
+// cross-origin, or browsers block the response (ERR_BLOCKED_BY_RESPONSE.
+// NotSameOrigin) and log a console error on every page.
+router.use((req, res, next) => {
+  res.set('Cross-Origin-Resource-Policy', 'cross-origin');
+  next();
+});
+
 // One beacon per page view; generous per-IP ceiling, separate from the
 // 100/15 min limit on the authenticated API.
 const rumLimiter = rateLimiter(
@@ -21,8 +30,6 @@ router.get('/rum.js', (req, res) => {
   res.set({
     'Content-Type': 'application/javascript; charset=utf-8',
     'Cache-Control': 'public, max-age=3600',
-    // helmet defaults to same-origin, which would block the apps' <script>.
-    'Cross-Origin-Resource-Policy': 'cross-origin',
   });
   res.send(rumScript());
 });

@@ -64,7 +64,7 @@ spec:
         runAsUser: 1001
       containers:
         - name: k8s-allocation-producer
-          image: docker.io/maxjeffwell/vertex-platform-k8s-allocation-producer:20261006-235041-49a3cb5
+          image: docker.io/maxjeffwell/vertex-platform-k8s-allocation-producer:20261006-235114-2b97d5c
           imagePullPolicy: Always
           ports:
             - containerPort: 3006

@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: auth-service
-          image: docker.io/maxjeffwell/vertex-platform-auth-service:20261006-235041-49a3cb5
+          image: docker.io/maxjeffwell/vertex-platform-auth-service:20261006-235114-2b97d5c
           imagePullPolicy: Always
           ports:
             - containerPort: 3001

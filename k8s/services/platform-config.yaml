@@ -31,6 +31,10 @@ data:
   KAFKA_ALLOCATION_TOPIC: "k8s.allocation"
   KAFKA_ALLOCATION_EVENTS_TOPIC: "k8s.allocation.events"
   ALLOCATION_INFLUXDB_BUCKET: "k8s-allocation"
+  # Real-user web vitals: POST /analytics/rum -> Kafka web.vitals -> InfluxDB web-perf
+  KAFKA_WEBPERF_TOPIC: "web.vitals"
+  WEBPERF_INFLUXDB_BUCKET: "web-perf"
+  RUM_APPS: "code-talk,educationelly,educationelly-graphql,bookmarked,firebook,intervalai"
 
   # CORS
   CORS_ORIGIN: "*"

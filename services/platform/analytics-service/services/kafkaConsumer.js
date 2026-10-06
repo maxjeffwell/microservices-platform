@@ -1,7 +1,8 @@
 import { getConsumer } from '../config/kafka.js';
-import { getWriteApi, getAllocationWriteApi } from '../config/influxdb.js';
+import { getWriteApi, getAllocationWriteApi, getWebPerfWriteApi } from '../config/influxdb.js';
 import Event from '../models/Event.js';
 import { allocationToPoint } from '../models/Allocation.js';
+import { webVitalsToPoints } from '../models/WebVital.js';
 import logger from '@platform/logger';
 
 let isRunning = false;
@@ -26,7 +27,9 @@ export async function startConsumer() {
       .filter(Boolean);
     const allocationEventsTopic =
       process.env.KAFKA_ALLOCATION_EVENTS_TOPIC || 'k8s.allocation.events';
-    const topics = [eventsTopic, ...allocationTopics];
+    // Browser RUM beacons published by routes/rum.js. Empty = disabled.
+    const webPerfTopic = process.env.KAFKA_WEBPERF_TOPIC || '';
+    const topics = [eventsTopic, ...allocationTopics, ...(webPerfTopic ? [webPerfTopic] : [])];
 
     await consumer.subscribe({
       topics,
@@ -40,6 +43,12 @@ export async function startConsumer() {
     await consumer.run({
       eachMessage: async ({ topic, partition, message }) => {
         try {
+          if (webPerfTopic && topic === webPerfTopic) {
+            const writeApi = getWebPerfWriteApi();
+            webVitalsToPoints(JSON.parse(message.value.toString())).forEach((p) => writeApi.writePoint(p));
+            return;
+          }
+
           if (topic !== eventsTopic) {
             // Allocation snapshot/event: buffered write, flushed by the client
             // every 5 s (see getAllocationWriteApi) instead of per message.

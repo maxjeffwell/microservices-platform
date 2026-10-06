@@ -3,6 +3,7 @@ import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import analyticsRoutes from './routes/analytics.js';
+import rumRoutes from './routes/rum.js';
 import { requireAuth, scopeToUser } from './middleware/auth.js';
 import { initInfluxDB, closeInfluxDB } from './config/influxdb.js';
 import { initProducer, initConsumer, closeKafka } from './config/kafka.js';
@@ -39,6 +40,13 @@ app.use(correlationIdMiddleware);
  * every 10-20 s would otherwise exhaust the limit and get 429s)
  */
 app.get('/health', healthCheck('analytics-service', '1.0.0'));
+
+/**
+ * Public real-user-monitoring routes (rum.js + beacon ingest). Mounted before
+ * the global rate limiter and the JWT-protected /analytics routes; they carry
+ * their own limiter and strict server-side validation (services/rumService.js).
+ */
+app.use('/analytics', rumRoutes);
 
 /**
  * Rate limiting

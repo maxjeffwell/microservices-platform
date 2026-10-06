@@ -54,32 +54,42 @@ export function getWriteApi() {
 }
 
 /**
- * Get query API instance
+ * Batched write APIs for the Kafka-fed buckets (k8s-allocation, web-perf).
+ * Unlike the events path (flush per message), these buffer and flush every
+ * 5 s or 2000 points. One instance per bucket, created on first use.
  */
-/**
- * Write API for the k8s-allocation bucket. Unlike the events path (flush per
- * message), this one batches: the producer sends ~140 points every 30 s, so
- * the client buffers and flushes every 5 s or 2000 points.
- */
-let allocationWriteApi = null;
-export function getAllocationWriteApi() {
+const bucketWriteApis = new Map();
+export function getBucketWriteApi(bucket) {
   if (!influxDB) {
     throw new Error('InfluxDB not initialized. Call initInfluxDB() first.');
   }
-  if (!allocationWriteApi) {
+  if (!bucketWriteApis.has(bucket)) {
     const org = process.env.INFLUXDB_ORG;
-    const bucket = process.env.ALLOCATION_INFLUXDB_BUCKET || 'k8s-allocation';
-    allocationWriteApi = influxDB.getWriteApi(org, bucket, 'ms', {
-      batchSize: 2000,
-      flushInterval: 5000,
-      maxRetries: 5,
-      maxBufferLines: 50000,
-    });
-    logger.info('InfluxDB allocation write API ready', { org, bucket });
+    bucketWriteApis.set(
+      bucket,
+      influxDB.getWriteApi(org, bucket, 'ms', {
+        batchSize: 2000,
+        flushInterval: 5000,
+        maxRetries: 5,
+        maxBufferLines: 50000,
+      })
+    );
+    logger.info('InfluxDB batched write API ready', { org, bucket });
   }
-  return allocationWriteApi;
+  return bucketWriteApis.get(bucket);
 }
 
+export function getAllocationWriteApi() {
+  return getBucketWriteApi(process.env.ALLOCATION_INFLUXDB_BUCKET || 'k8s-allocation');
+}
+
+export function getWebPerfWriteApi() {
+  return getBucketWriteApi(process.env.WEBPERF_INFLUXDB_BUCKET || 'web-perf');
+}
+
+/**
+ * Get query API instance
+ */
 export function getQueryApi() {
   if (!queryApi) {
     throw new Error('InfluxDB query API not initialized. Call initInfluxDB() first.');
@@ -96,11 +106,11 @@ export async function closeInfluxDB() {
       await writeApi.close();
       logger.info('InfluxDB write API closed');
     }
-    if (allocationWriteApi) {
-      await allocationWriteApi.close();
-      allocationWriteApi = null;
-      logger.info('InfluxDB allocation write API closed');
+    for (const [bucket, api] of bucketWriteApis) {
+      await api.close();
+      logger.info('InfluxDB batched write API closed', { bucket });
     }
+    bucketWriteApis.clear();
   } catch (error) {
     logger.error('Error closing InfluxDB connection', { error: error.message });
     throw error;
@@ -110,7 +120,9 @@ export async function closeInfluxDB() {
 export default {
   initInfluxDB,
   getWriteApi,
+  getBucketWriteApi,
   getAllocationWriteApi,
+  getWebPerfWriteApi,
   getQueryApi,
   closeInfluxDB,
 };

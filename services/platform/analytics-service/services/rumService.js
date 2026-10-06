@@ -12,7 +12,8 @@ import { sendEvent } from '../config/kafka.js';
  * The endpoint is public and unauthenticated, so everything that becomes an
  * InfluxDB tag is derived or allow-listed here, never taken from the client:
  *   - app/host come from the browser-set Origin header (allow-listed apps)
- *   - page is normalised (ids -> :id, length and depth capped)
+ *   - page is normalised (ids -> :id, depth 2) and capped per app
+ *     (RUM_MAX_PAGES_PER_APP distinct pages, then "/other")
  *   - browser family comes from the User-Agent; bots are dropped
  *   - metric names, ratings, navigation types, devices and connection
  *     types must be in fixed sets; values must be finite and in range
@@ -81,7 +82,7 @@ export function normalizePage(p) {
     .split(/[?#]/)[0]
     .split('/')
     .filter(Boolean)
-    .slice(0, 4)
+    .slice(0, 2)
     .map((s) => {
       let seg;
       try {
@@ -89,7 +90,7 @@ export function normalizePage(p) {
       } catch (e) {
         return ':id';
       }
-      if (/^\d+$/.test(seg)) return ':id';
+      if (/\d/.test(seg)) return ':id'; // any digit: ids, dates, versions
       if (/^[0-9a-f]{8,}$/i.test(seg)) return ':id'; // mongo ids, hashes
       if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(seg)) return ':id';
       if (/^[A-Za-z0-9_-]{20,}$/.test(seg)) return ':id'; // firestore ids, tokens
@@ -97,6 +98,26 @@ export function normalizePage(p) {
       return seg.toLowerCase();
     });
   return `/${segments.join('/')}`.slice(0, 80);
+}
+
+/**
+ * Cardinality guard. `page` is the only free-form tag and the Origin header
+ * can be forged outside a browser, so cap distinct pages per app: once an app
+ * has RUM_MAX_PAGES_PER_APP distinct pages in this process, new ones are
+ * recorded as "/other". Worst case = apps x cap series per tag combination.
+ */
+const MAX_PAGES_PER_APP = parseInt(process.env.RUM_MAX_PAGES_PER_APP, 10) || 50;
+const seenPages = new Map();
+export function boundedPage(app, page) {
+  if (!seenPages.has(app)) seenPages.set(app, new Set(['/']));
+  const seen = seenPages.get(app);
+  if (seen.has(page)) return page;
+  if (seen.size >= MAX_PAGES_PER_APP) return '/other';
+  seen.add(page);
+  return page;
+}
+export function resetSeenPages() {
+  seenPages.clear();
 }
 
 function validMetric(m) {
@@ -146,7 +167,7 @@ export function buildRumMessage({ origin, userAgent, body }) {
       ts: Date.now(),
       app: who.app,
       host: who.host,
-      page: normalizePage(data.page),
+      page: boundedPage(who.app, normalizePage(data.page)),
       device: DEVICES.has(data.device) ? data.device : 'desktop',
       conn: CONNS.has(data.conn) ? data.conn : 'unknown',
       browser,

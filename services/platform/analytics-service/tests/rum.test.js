@@ -1,4 +1,4 @@
-import { appFromOrigin, browserFamily, normalizePage, buildRumMessage, rumScript } from '../services/rumService.js';
+import { appFromOrigin, browserFamily, normalizePage, buildRumMessage, rumScript, boundedPage, resetSeenPages } from '../services/rumService.js';
 import { webVitalsToPoints } from '../models/WebVital.js';
 
 const CHROME = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0 Safari/537.36';
@@ -19,17 +19,37 @@ describe('appFromOrigin', () => {
 
 describe('normalizePage', () => {
   it('replaces ids and strips query/hash', () => {
-    expect(normalizePage('/rooms/65f1c0ffee12ab34cd56ef78/edit?x=1#y')).toBe('/rooms/:id/edit');
+    expect(normalizePage('/rooms/65f1c0ffee12ab34cd56ef78/edit?x=1#y')).toBe('/rooms/:id'); // depth 2
     expect(normalizePage('/students/42')).toBe('/students/:id');
     expect(normalizePage('/b/3f2504e0-4f89-11d3-9a0c-0305e82c3301')).toBe('/b/:id');
     expect(normalizePage('/x/AbCdEfGhIjKlMnOpQrStUv')).toBe('/x/:id');
     expect(normalizePage('/Dashboard')).toBe('/dashboard');
   });
   it('caps depth and rejects junk', () => {
-    expect(normalizePage('/a/b/c/d/e/f')).toBe('/a/b/c/d');
+    expect(normalizePage('/a/b/c/d/e/f')).toBe('/a/b');
+    expect(normalizePage('/report/2026-10')).toBe('/report/:id');
+    expect(normalizePage('/abc1x')).toBe('/:id');
     expect(normalizePage('/<script>')).toBe('/:id');
     expect(normalizePage('nope')).toBe('/');
     expect(normalizePage(undefined)).toBe('/');
+  });
+});
+
+describe('boundedPage (cardinality guard)', () => {
+  beforeEach(() => resetSeenPages());
+  it('caps distinct pages per app and folds the rest into /other', () => {
+    for (let i = 0; i < 49; i += 1) expect(boundedPage('firebook', `/p${String.fromCharCode(97 + (i % 26))}${i >= 26 ? 'x' : ''}`)).not.toBe('/other');
+    expect(boundedPage('firebook', '/one-too-many')).toBe('/other');
+    expect(boundedPage('firebook', '/pa')).toBe('/pa'); // already-seen pages keep working
+    expect(boundedPage('code-talk', '/fresh')).toBe('/fresh'); // per app
+  });
+  it('a flood of forged paths cannot exceed the cap', () => {
+    const out = new Set();
+    for (let i = 0; i < 5000; i += 1) {
+      out.add(buildRumMessage({ origin: 'https://intervalai.el-jefe.me', userAgent: CHROME,
+        body: body([LCP], { page: `/${Math.random().toString(36).replace(/[0-9.]/g, '').slice(0, 6) || 'x'}` }) }).message.page);
+    }
+    expect(out.size).toBeLessThanOrEqual(50);
   });
 });
 

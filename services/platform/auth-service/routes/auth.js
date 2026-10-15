@@ -32,7 +32,8 @@ function signupsDisabled(req, res, next) {
 
 const signupLimiter = rateLimiter(
   60 * 60 * 1000,
-  parseInt(process.env.SIGNUP_RATE_LIMIT_MAX) || 5
+  parseInt(process.env.SIGNUP_RATE_LIMIT_MAX) || 5,
+  'auth-signup'
 );
 
 /**

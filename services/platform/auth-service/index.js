@@ -42,7 +42,7 @@ app.use(responseLoggerMiddleware(logger));
 app.get('/health', healthCheck('auth-service', '1.0.0'));
 
 // Rate limiting
-app.use(rateLimiter());
+app.use(rateLimiter(undefined, undefined, 'auth'));
 
 // Routes
 app.use('/auth', authRoutes);

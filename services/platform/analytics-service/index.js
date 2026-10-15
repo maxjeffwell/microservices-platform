@@ -56,7 +56,8 @@ app.use('/analytics', rumRoutes);
 app.use(
   rateLimiter(
     parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10) || 15 * 60 * 1000,
-    parseInt(process.env.RATE_LIMIT_MAX_REQUESTS, 10) || 100
+    parseInt(process.env.RATE_LIMIT_MAX_REQUESTS, 10) || 100,
+    'analytics'
   )
 );
 

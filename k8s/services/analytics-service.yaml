@@ -64,6 +64,15 @@ spec:
                 secretKeyRef:
                   name: platform-secrets
                   key: JWT_SECRET
+            # Cross-replica rate-limit counters (shared/middleware/rateLimitStore.js).
+            # Unset REDIS_URL = per-pod in-memory counters (2 replicas = 2x budget).
+            - name: REDIS_URL
+              value: redis://redis.default.svc.cluster.local:6379
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: platform-secrets
+                  key: REDIS_PASSWORD
             - name: INFLUXDB_ORG
               valueFrom:
                 configMapKeyRef:

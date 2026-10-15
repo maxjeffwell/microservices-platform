@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import jwt from 'jsonwebtoken';
 import rateLimit from 'express-rate-limit';
+import { createRateLimitStore } from './rateLimitStore.js';
 import { validationResult } from 'express-validator';
 import { UnauthorizedError } from '@platform/errors';
 
@@ -68,15 +69,21 @@ export function optionalAuth(jwtSecret = process.env.JWT_SECRET) {
  * Rate limiting middleware
  * @param {number} windowMs - Time window in milliseconds
  * @param {number} max - Maximum number of requests per window
+ * @param {string} name - Distinct limiter name (Redis key namespace). Required:
+ *   counters are shared across replicas via REDIS_URL (see rateLimitStore.js),
+ *   so two limiters with the same name would count against each other.
  * @returns {Function}
  */
-export function rateLimiter(windowMs = 15 * 60 * 1000, max = 100) {
+export function rateLimiter(windowMs = 15 * 60 * 1000, max = 100, name) {
+  if (!name) throw new Error('rateLimiter(windowMs, max, name): name is required');
   return rateLimit({
     windowMs,
     max,
     message: 'Too many requests from this IP, please try again later.',
     standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+    store: createRateLimitStore(name), // undefined -> MemoryStore (no REDIS_URL)
+    passOnStoreError: true, // Redis down -> let requests through, never 500
   });
 }
 

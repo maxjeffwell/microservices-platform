@@ -24,7 +24,8 @@ router.use(['/rum', '/rum.js'], (req, res, next) => {
 // 100/15 min limit on the authenticated API.
 const rumLimiter = rateLimiter(
   parseInt(process.env.RUM_RATE_LIMIT_WINDOW_MS, 10) || 15 * 60 * 1000,
-  parseInt(process.env.RUM_RATE_LIMIT_MAX_REQUESTS, 10) || 600
+  parseInt(process.env.RUM_RATE_LIMIT_MAX_REQUESTS, 10) || 600,
+  'analytics-rum'
 );
 
 router.get('/rum.js', (req, res) => {

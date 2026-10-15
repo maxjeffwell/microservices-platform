@@ -5,6 +5,10 @@ on:
     branches: [ "main" ]
     paths:
       - 'services/platform/**'
+      # shared/* is vendored into every service image (Dockerfile COPY shared),
+      # so a shared change must rebuild them too (2026-10-15: a shared/middleware
+      # commit shipped nothing until this was added).
+      - 'shared/**'
       - 'k8s/services/**'
       - '.github/workflows/build-and-deploy-vertex.yml'
   workflow_dispatch:

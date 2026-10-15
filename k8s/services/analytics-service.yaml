@@ -6,7 +6,14 @@ metadata:
   labels:
     app: analytics-service
 spec:
-  replicas: 1
+  # 2026-10-15: 2 replicas, rolling, spread across servers (+ PDB) so a server
+  # loss or a deploy never takes the service down. Stateless.
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
   selector:
     matchLabels:
       app: analytics-service
@@ -15,6 +22,13 @@ spec:
       labels:
         app: analytics-service
     spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: analytics-service
       containers:
         - name: analytics-service
           image: docker.io/maxjeffwell/vertex-platform-analytics-service:20261015-115816-4d4ab13
@@ -160,3 +174,16 @@ spec:
   ports:
     - port: 3005
       targetPort: 3005
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: analytics-service
+  namespace: vertex-platform
+  labels:
+    app: analytics-service
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: analytics-service

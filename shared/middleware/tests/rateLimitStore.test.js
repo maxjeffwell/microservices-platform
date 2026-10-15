@@ -63,3 +63,23 @@ test('Redis unreachable at construction: no unhandled rejection, increment rejec
     process.off('unhandledRejection', onUnhandled);
   }
 });
+
+// --- rateLimiter() wiring (index.js) ---
+import { rateLimiter } from '../index.js';
+
+const fakeStore = () => ({ init() {}, async increment() { return { totalHits: 1, resetTime: new Date() }; }, async decrement() {}, async resetKey() {} });
+
+test('rateLimiter with a shared store returns [redis limiter, in-memory backstop]', () => {
+  const chain = rateLimiter(1000, 5, 'x', { store: fakeStore() });
+  assert.ok(Array.isArray(chain) && chain.length === 2, 'two middlewares');
+  assert.ok(chain.every((fn) => typeof fn === 'function'));
+});
+
+test('rateLimiter without a shared store returns a single in-memory limiter', () => {
+  const single = rateLimiter(1000, 5, 'x', { store: undefined });
+  assert.equal(typeof single, 'function');
+});
+
+test('rateLimiter requires a name', () => {
+  assert.throws(() => rateLimiter(1000, 5), /name/);
+});

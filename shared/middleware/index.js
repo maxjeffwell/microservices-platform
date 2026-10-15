@@ -72,19 +72,27 @@ export function optionalAuth(jwtSecret = process.env.JWT_SECRET) {
  * @param {string} name - Distinct limiter name (Redis key namespace). Required:
  *   counters are shared across replicas via REDIS_URL (see rateLimitStore.js),
  *   so two limiters with the same name would count against each other.
- * @returns {Function}
+ * @param {object} [opts]
+ * @param {object} [opts.store] - store override (tests); default createRateLimitStore(name)
+ * @returns {Function|Function[]} one limiter (no shared store) or a chain of
+ *   two: the Redis-backed limiter, then an in-memory per-pod backstop. If Redis
+ *   is down or not yet connected the first one passes the request through
+ *   (passOnStoreError) and the backstop still enforces today's per-pod limit,
+ *   so an outage never means "no limit".
  */
-export function rateLimiter(windowMs = 15 * 60 * 1000, max = 100, name) {
+export function rateLimiter(windowMs = 15 * 60 * 1000, max = 100, name, opts = {}) {
   if (!name) throw new Error('rateLimiter(windowMs, max, name): name is required');
-  return rateLimit({
+  const base = {
     windowMs,
     max,
     message: 'Too many requests from this IP, please try again later.',
     standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-    store: createRateLimitStore(name), // undefined -> MemoryStore (no REDIS_URL)
-    passOnStoreError: true, // Redis down -> let requests through, never 500
-  });
+  };
+  const store = 'store' in opts ? opts.store : createRateLimitStore(name);
+  const memoryLimiter = rateLimit(base);
+  if (!store) return memoryLimiter;
+  return [rateLimit({ ...base, store, passOnStoreError: true }), memoryLimiter];
 }
 
 /**

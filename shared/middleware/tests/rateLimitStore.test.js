@@ -69,7 +69,7 @@ import { rateLimiter } from '../index.js';
 
 const fakeStore = () => ({ init() {}, async increment() { return { totalHits: 1, resetTime: new Date() }; }, async decrement() {}, async resetKey() {} });
 
-test('rateLimiter with a shared store returns [redis limiter, in-memory backstop]', () => {
+test('rateLimiter with a shared store returns [in-memory backstop, redis limiter]', () => {
   const chain = rateLimiter(1000, 5, 'x', { store: fakeStore() });
   assert.ok(Array.isArray(chain) && chain.length === 2, 'two middlewares');
   assert.ok(chain.every((fn) => typeof fn === 'function'));

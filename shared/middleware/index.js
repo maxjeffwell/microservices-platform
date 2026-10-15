@@ -75,10 +75,11 @@ export function optionalAuth(jwtSecret = process.env.JWT_SECRET) {
  * @param {object} [opts]
  * @param {object} [opts.store] - store override (tests); default createRateLimitStore(name)
  * @returns {Function|Function[]} one limiter (no shared store) or a chain of
- *   two: the Redis-backed limiter, then an in-memory per-pod backstop. If Redis
- *   is down or not yet connected the first one passes the request through
- *   (passOnStoreError) and the backstop still enforces today's per-pod limit,
- *   so an outage never means "no limit".
+ *   two: an in-memory per-pod backstop, then the Redis-backed limiter shared by
+ *   all replicas. If Redis is down or not yet connected the Redis one passes
+ *   the request through (passOnStoreError) and the backstop still enforces
+ *   today's per-pod limit, so an outage never means "no limit". The Redis
+ *   limiter runs last so the RateLimit-* headers report the shared count.
  */
 export function rateLimiter(windowMs = 15 * 60 * 1000, max = 100, name, opts = {}) {
   if (!name) throw new Error('rateLimiter(windowMs, max, name): name is required');
@@ -92,7 +93,7 @@ export function rateLimiter(windowMs = 15 * 60 * 1000, max = 100, name, opts = {
   const store = 'store' in opts ? opts.store : createRateLimitStore(name);
   const memoryLimiter = rateLimit(base);
   if (!store) return memoryLimiter;
-  return [rateLimit({ ...base, store, passOnStoreError: true }), memoryLimiter];
+  return [memoryLimiter, rateLimit({ ...base, store, passOnStoreError: true })];
 }
 
 /**

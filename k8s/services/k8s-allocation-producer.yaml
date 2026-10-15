@@ -109,17 +109,24 @@ spec:
               cpu: "20m"
             limits:
               memory: "256Mi"
-              cpu: "300m"
+              # 2026-10-15: 300m CFS-throttled the 30 s snapshot burst (8-10 % of
+              # periods at a ~50m average), stalling the event loop and timing
+              # out /health. The burst is real work; give it a full core.
+              cpu: "1000m"
           readinessProbe:
             httpGet:
               path: /health
               port: 3006
             initialDelaySeconds: 10
             periodSeconds: 15
+            # /health is in-memory but shares the event loop with the snapshot;
+            # the 1 s default was timing out ("context deadline exceeded").
+            timeoutSeconds: 5
           livenessProbe:
             httpGet:
               path: /health
               port: 3006
             initialDelaySeconds: 60
             periodSeconds: 30
+            timeoutSeconds: 5
             failureThreshold: 3

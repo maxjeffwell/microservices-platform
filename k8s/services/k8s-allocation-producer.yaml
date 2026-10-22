@@ -105,8 +105,9 @@ spec:
                   key: KAFKA_ALLOCATION_EVENTS_TOPIC
           resources:
             requests:
-              memory: "96Mi"
-              cpu: "20m"
+              # 2026-10-21: 96Mi/20m -> 128Mi/75m (7-day p95 98Mi, 60m CPU)
+              memory: "128Mi"
+              cpu: "75m"
             limits:
               memory: "256Mi"
               # 2026-10-15: 300m CFS-throttled the 30 s snapshot burst (8-10 % of

@@ -31,6 +31,15 @@ spec:
           labelSelector:
             matchLabels:
               app: auth-service
+      # Patroni HA (VIP 192.168.50.60:5000) is reachable only from the LAN servers; the VPS cannot reach it (2026-10-23).
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values: [elitedesk, m720q, m920s]
       containers:
         - name: auth-service
           image: docker.io/maxjeffwell/vertex-platform-auth-service:20261023-100332-fe2fad7

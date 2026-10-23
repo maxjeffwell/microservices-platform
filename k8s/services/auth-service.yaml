@@ -55,6 +55,8 @@ spec:
                 secretKeyRef:
                   name: platform-secrets
                   key: AUTH_DATABASE_URL
+            - name: NODE_EXTRA_CA_CERTS   # Patroni cluster CA -> DATABASE_URL uses sslmode=verify-full
+              value: /etc/pg-ha/ca.crt
             - name: JWT_SECRET
               valueFrom:
                 secretKeyRef:
@@ -84,6 +86,10 @@ spec:
                 configMapKeyRef:
                   name: platform-config
                   key: CORS_ORIGIN
+          volumeMounts:
+            - name: pg-ha-ca
+              mountPath: /etc/pg-ha
+              readOnly: true
           resources:
             requests:
               memory: "128Mi"
@@ -103,6 +109,11 @@ spec:
               port: 3001
             initialDelaySeconds: 30
             periodSeconds: 20
+      volumes:
+        - name: pg-ha-ca
+          secret:
+            secretName: pg-ha-ca
+
 ---
 apiVersion: v1
 kind: Service

@@ -9,7 +9,8 @@
     "start": "node index.js",
     "test": "NODE_ENV=test jest --detectOpenHandles",
     "test:watch": "NODE_ENV=test jest --watch",
-    "test:coverage": "NODE_ENV=test jest --coverage"
+    "test:coverage": "NODE_ENV=test jest --coverage",
+    "postinstall": "patch-package --error-on-fail || test ! -d node_modules/kafkajs"
   },
   "keywords": [
     "analytics",
@@ -33,6 +34,7 @@
     "express-validator": "^7.0.1",
     "helmet": "^7.1.0",
     "kafkajs": "^2.2.4",
+    "patch-package": "^8.0.1",
     "uuid": "^9.0.1",
     "web-vitals": "^6.2.3"
   },

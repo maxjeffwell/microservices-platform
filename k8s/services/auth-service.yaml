@@ -42,7 +42,7 @@ spec:
                     values: [elitedesk, m720q, m920s]
       containers:
         - name: auth-service
-          image: docker.io/maxjeffwell/vertex-platform-auth-service:20261023-112829-153c690
+          image: docker.io/maxjeffwell/vertex-platform-auth-service:20261109-043149-de13375
           imagePullPolicy: Always
           ports:
             - containerPort: 3001

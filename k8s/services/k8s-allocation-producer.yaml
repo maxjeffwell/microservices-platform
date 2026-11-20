@@ -113,7 +113,9 @@ spec:
               # 2026-10-15: 300m CFS-throttled the 30 s snapshot burst (8-10 % of
               # periods at a ~50m average), stalling the event loop and timing
               # out /health. The burst is real work; give it a full core.
-              cpu: "1000m"
+              # 2026-11-19: still throttled at 1000m (27-31 % of periods, 7-day
+              # avg 64m): the burst runs several threads at once. 1000m -> 2000m.
+              cpu: "2000m"
           readinessProbe:
             httpGet:
               path: /health

@@ -1,5 +1,5 @@
 # Multi-stage build for k8s-allocation-producer (same layout as analytics-service)
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 
 WORKDIR /build
 
@@ -17,7 +17,7 @@ RUN --mount=type=cache,target=/root/.npm \
     rm -f package-lock.json && npm install --omit=dev
 
 # Runtime stage
-FROM node:20-alpine
+FROM node:24-alpine
 RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
 COPY --from=builder --chown=nodejs:nodejs /shared /shared
 WORKDIR /app

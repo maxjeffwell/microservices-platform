@@ -59,7 +59,7 @@ export function getWriteApi() {
  * 5 s or 2000 points. One instance per bucket, created on first use.
  */
 const bucketWriteApis = new Map();
-export function getBucketWriteApi(bucket) {
+export function getBucketWriteApi(bucket, precision = 'ms') {
   if (!influxDB) {
     throw new Error('InfluxDB not initialized. Call initInfluxDB() first.');
   }
@@ -67,7 +67,7 @@ export function getBucketWriteApi(bucket) {
     const org = process.env.INFLUXDB_ORG;
     bucketWriteApis.set(
       bucket,
-      influxDB.getWriteApi(org, bucket, 'ms', {
+      influxDB.getWriteApi(org, bucket, precision, {
         batchSize: 2000,
         flushInterval: 5000,
         maxRetries: 5,
@@ -79,8 +79,11 @@ export function getBucketWriteApi(bucket) {
   return bucketWriteApis.get(bucket);
 }
 
+// 'ns' precision: allocation events carry a sub-millisecond per-object offset
+// in their timestamp (models/Allocation.js eventTimestampNs). Snapshot points
+// pass a Date, which the client converts to ns itself.
 export function getAllocationWriteApi() {
-  return getBucketWriteApi(process.env.ALLOCATION_INFLUXDB_BUCKET || 'k8s-allocation');
+  return getBucketWriteApi(process.env.ALLOCATION_INFLUXDB_BUCKET || 'k8s-allocation', 'ns');
 }
 
 export function getWebPerfWriteApi() {

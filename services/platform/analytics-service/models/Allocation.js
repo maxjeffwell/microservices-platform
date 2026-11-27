@@ -58,6 +58,32 @@ function at(msg) {
   return new Date(Number.isFinite(msg.ts) ? msg.ts : Date.now());
 }
 
+/** FNV-1a, 32-bit: small, stable across restarts, good enough spread for an offset. */
+function hash32(str) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i += 1) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return h >>> 0;
+}
+
+/**
+ * Event timestamp in NANOSECONDS, as a string: the event's millisecond time
+ * plus a sub-millisecond offset derived from the object it is about.
+ *
+ * InfluxDB identifies a point by measurement + tags + timestamp, and the object
+ * name is a field (to keep series count bounded). Without the offset, two pods
+ * with the same reason/namespace/node in the same second overwrite each other.
+ * The offset is deterministic, so a replayed event still lands on itself.
+ * Requires the write API to use 'ns' precision (see getAllocationWriteApi).
+ */
+function eventTimestampNs(msg) {
+  const ms = Number.isFinite(msg.ts) ? Math.floor(msg.ts) : Date.now();
+  const offsetNs = hash32(`${msg.object_kind || ''}/${msg.object_name || ''}`) % 1000000;
+  return `${ms}${String(offsetNs).padStart(6, '0')}`;
+}
+
 /**
  * @param {string} topic Kafka topic the message came from
  * @param {object} msg parsed JSON message
@@ -79,7 +105,7 @@ export function allocationToPoint(topic, msg, eventsTopic = 'k8s.allocation.even
     p.stringField('object_name', msg.object_name || '');
     p.stringField('message', msg.message || '');
     p.intField('count', Number.isFinite(msg.count) ? msg.count : 1);
-    return p.timestamp(at(msg));
+    return p.timestamp(eventTimestampNs(msg));
   }
 
   switch (msg.kind) {

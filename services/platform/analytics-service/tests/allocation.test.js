@@ -52,6 +52,29 @@ describe('allocationToPoint', () => {
     expect(line).toContain('object_name="foo-abc"');
   });
 
+  describe('event timestamps', () => {
+    const event = (object_name) => ({
+      ts, reason: 'Evicted', type: 'Normal', namespace: 'default', object_kind: 'Pod',
+      object_name, node: 'm920s', source: 'kubelet', count: 1,
+    });
+    const stamp = (line) => line.slice(line.lastIndexOf(' ') + 1);
+
+    it('gives two pods in the same instant different timestamps within the same millisecond', () => {
+      const a = stamp(allocationToPoint('k8s.allocation.events', event('foo-abc')).toLineProtocol());
+      const b = stamp(allocationToPoint('k8s.allocation.events', event('foo-def')).toLineProtocol());
+      expect(a).not.toBe(b);
+      expect(a).toHaveLength(19); // nanoseconds
+      expect(a.slice(0, 13)).toBe(String(ts));
+      expect(b.slice(0, 13)).toBe(String(ts));
+    });
+
+    it('gives a replayed event exactly the same line, so it overwrites itself', () => {
+      const first = allocationToPoint('k8s.allocation.events', event('foo-abc')).toLineProtocol();
+      const replay = allocationToPoint('k8s.allocation.events', event('foo-abc')).toLineProtocol();
+      expect(replay).toBe(first);
+    });
+  });
+
   it('drops unknown or malformed messages', () => {
     expect(allocationToPoint('k8s.allocation', { kind: 'nope' })).toBeNull();
     expect(allocationToPoint('k8s.allocation', { kind: 'node' })).toBeNull();
